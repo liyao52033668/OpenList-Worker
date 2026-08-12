@@ -147,10 +147,17 @@ CREATE TABLE cache -- 缓存信息
 
 CREATE TABLE admin -- 全局设置
 (
-    admin_keys TEXT PRIMARY KEY UNIQUE NOT NULL, -- 设置路径
-    admin_data TEXT                    NOT NULL  -- 设置数据
+    admin_keys  TEXT PRIMARY KEY UNIQUE NOT NULL, -- 设置路径
+    admin_data  TEXT                    NOT NULL, -- 设置数据
+    admin_type  TEXT                    DEFAULT 'string',  -- 设置类型
+    admin_group TEXT                    DEFAULT 'general', -- 设置分组
+    admin_flag  INTEGER                 DEFAULT 0          -- 标志位
     -- 拓展信息 ===============================================
 );
+-- 已部署用户迁移（旧表只有 admin_keys/admin_data 两列时执行）：
+--   ALTER TABLE admin ADD COLUMN admin_type TEXT  DEFAULT 'string';
+--   ALTER TABLE admin ADD COLUMN admin_group TEXT DEFAULT 'general';
+--   ALTER TABLE admin ADD COLUMN admin_flag INTEGER DEFAULT 0;
 
 CREATE TABLE media_scan_paths -- 媒体库扫描路径配置
 (

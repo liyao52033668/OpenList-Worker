@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import { 
-  UsersResult, 
-  UsersConfig, 
-  LoginRequest, 
-  CreateUserRequest, 
-  UpdateUserRequest 
+import { useAuthStore } from '../store';
+import {
+  UsersResult,
+  UsersConfig,
+  LoginRequest,
+  CreateUserRequest,
+  UpdateUserRequest
 } from '../types';
 
 // 新版 API 基础路径（与 GO 后端对齐）
@@ -17,19 +18,19 @@ export const useUsers = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 获取认证token
+  // 获取认证token（与 apiService 统一从 zustand 读取，避免读到不存在的 localStorage key）
   const getAuthToken = () => {
-    return localStorage.getItem('token');
+    return useAuthStore.getState().token;
   };
 
   // 设置认证token
   const setAuthToken = (token: string) => {
-    localStorage.setItem('token', token);
+    useAuthStore.setState({ token });
   };
 
   // 清除认证token
   const clearAuthToken = () => {
-    localStorage.removeItem('token');
+    useAuthStore.setState({ token: null });
   };
 
   // 获取认证头

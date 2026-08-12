@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '../store';
 import { downloadManager } from './downloadManager';
 
 // 文件信息接口
@@ -112,7 +113,7 @@ export const downloadFile = async ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        'Authorization': `Bearer ${useAuthStore.getState().token || ''}`,
       },
       body: JSON.stringify({ path: fullFilePath }),
     });
