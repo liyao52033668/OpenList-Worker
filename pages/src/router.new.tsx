@@ -66,6 +66,7 @@ const AccountSettings = lazy(() => import('./pages/Users/AccountSettings'));
 const AboutPage = lazy(() => import('./pages/Admin/AboutPlatform'));
 const ConnectionConfig = lazy(() => import('./pages/Users/ConnectionConfig'));
 const OAuthCallback = lazy(() => import('./pages/OAuth/OAuthCallback'));
+const BaiduOAuthCallback = lazy(() => import('./pages/BaiduOAuthCallback'));
 
 // 新增页面组件
 const MediaLibrary = lazy(() => import('./pages/Files/MediaLibrary'));
@@ -115,6 +116,11 @@ export const router = createBrowserRouter([
   {
     path: '/oauth/callback',
     element: <LazyLoad><OAuthCallback /></LazyLoad>,
+  },
+  // 百度网盘授权回调（挂载点表单获取 refresh_token，无需鉴权）
+  {
+    path: '/baidu-oauth-callback',
+    element: <LazyLoad><BaiduOAuthCallback /></LazyLoad>,
   },
   // 主布局（公开访问，菜单根据角色动态显示）
   {
@@ -178,7 +184,7 @@ export const router = createBrowserRouter([
 
       // 分享设置
       { path: 'admin/share-settings', element: <AdminRoute><LazyLoad><ShareSettings /></LazyLoad></AdminRoute> },
-      // 安全管理
+      // 安全管理
       // 安全管理
       { path: 'admin/crypt-settings', element: <AdminRoute><LazyLoad><CryptSettings /></LazyLoad></AdminRoute> },
       // 媒体库管理

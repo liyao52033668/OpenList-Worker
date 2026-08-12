@@ -136,6 +136,35 @@ export class OAuthService {
         });
         return response;
     }
+
+    /**
+     * 百度网盘授权：生成授权 URL（挂载点表单「获取刷新令牌」按钮使用）
+     * 独立接口：client_id 由表单临时提供，不走 /api/auth/sso
+     */
+    async getBaiduAuthUrl(clientId: string, redirectUri: string): Promise<{ auth_url: string; state: string; redirect_uri: string }> {
+        const response: any = await apiService.post('/api/oauth/baidu/authurl', {
+            client_id: clientId,
+            redirect_uri: redirectUri,
+        });
+        return {
+            auth_url: response.auth_url || response.data?.auth_url || '',
+            state: response.state || response.data?.state || '',
+            redirect_uri: response.redirect_uri || response.data?.redirect_uri || redirectUri,
+        };
+    }
+
+    /**
+     * 百度网盘授权：用授权码兑换 refresh_token
+     * 返回 { access_token, refresh_token, expires_in }
+     */
+    async exchangeBaiduCode(code: string, clientId: string, clientSecret: string, redirectUri: string): Promise<any> {
+        return apiService.post('/api/oauth/baidu/exchange', {
+            code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+        });
+    }
 }
 
 export const oauthService = new OAuthService();

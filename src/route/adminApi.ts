@@ -279,6 +279,7 @@ export function adminApiRoutes(app: Hono<any>) {
         if (body.disabled !== undefined) updateData.is_enabled = !body.disabled;
         else if (body.is_enabled !== undefined) updateData.is_enabled = body.is_enabled;
         if (body.users_mask !== undefined) updateData.users_mask = body.users_mask;
+        if (body.email !== undefined || body.users_mail !== undefined) updateData.users_mail = body.email ?? body.users_mail;
 
         const result = await usersManage.config({ ...existing, ...updateData });
         if (!result.flag) return errorResp(c, result.text || '更新失败', 500);

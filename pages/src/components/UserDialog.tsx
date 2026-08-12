@@ -25,7 +25,8 @@ const UserDialog: React.FC<UserDialogProps> = ({
     users_mail: '',
     users_pass: '',
     is_enabled: true,
-    total_size: 1024 * 1024 * 1024 // 默认1GB
+    total_size: 1024 * 1024 * 1024, // 默认1GB
+    users_mask: ''
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +52,8 @@ const UserDialog: React.FC<UserDialogProps> = ({
         users_mail: '',
         users_pass: '',
         is_enabled: true,
-        total_size: 1024 * 1024 * 1024
+        total_size: 1024 * 1024 * 1024,
+        users_mask: ''
       });
     }
     setErrors({});
@@ -232,30 +234,28 @@ const UserDialog: React.FC<UserDialogProps> = ({
           )}
         </div>
 
-        {mode === 'edit' && (
-          <>
-            <Divider style={{ margin: '4px 0' }} />
-            <Typography.Text type="secondary" strong>高级设置</Typography.Text>
-            
-            <div>
-              <Typography.Text style={{ marginBottom: 4, display: 'block' }}>用户权限标识</Typography.Text>
-              <Input
-                placeholder="用于权限控制的标识符"
-                value={(formData as UpdateUserRequest).users_mask || ''}
-                onChange={(e) => handleInputChange('users_mask', e.target.value)}
-              />
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>用于权限控制的标识符</Typography.Text>
-            </div>
+        <Divider style={{ margin: '4px 0' }} />
+        <Typography.Text type="secondary" strong>高级设置</Typography.Text>
 
-            <div>
-              <Typography.Text style={{ marginBottom: 4, display: 'block' }}>已用空间</Typography.Text>
-              <Input
-                value={formatStorageSize((formData as UpdateUserRequest).total_used || 0)}
-                disabled
-              />
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>只读字段，由系统自动计算</Typography.Text>
-            </div>
-          </>
+        <div>
+          <Typography.Text style={{ marginBottom: 4, display: 'block' }}>用户权限标识</Typography.Text>
+          <Input
+            placeholder="用于权限控制的标识符"
+            value={(formData as UpdateUserRequest).users_mask || ''}
+            onChange={(e) => handleInputChange('users_mask', e.target.value)}
+          />
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>用于权限控制的标识符</Typography.Text>
+        </div>
+
+        {mode === 'edit' && (
+          <div>
+            <Typography.Text style={{ marginBottom: 4, display: 'block' }}>已用空间</Typography.Text>
+            <Input
+              value={formatStorageSize((formData as UpdateUserRequest).total_used || 0)}
+              disabled
+            />
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>只读字段，由系统自动计算</Typography.Text>
+          </div>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

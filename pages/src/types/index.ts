@@ -72,6 +72,7 @@ export interface CreateUserRequest {
   users_pass: string;
   is_enabled?: boolean;
   total_size?: number;
+  users_mask?: string;
 }
 
 // 用户更新请求接口

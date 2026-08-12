@@ -39,12 +39,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.4.2
- * Query Engine version: 94a226be1cf2967af2541cca5529f0f7ba866919
+ * Prisma Client JS version: 7.9.1
+ * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 Prisma.prismaVersion = {
-  client: "7.4.2",
-  engine: "94a226be1cf2967af2541cca5529f0f7ba866919"
+  client: "7.9.1",
+  engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -239,8 +239,8 @@ exports.Prisma.ModelName = {
  */
 const config = {
   "previewFeatures": [],
-  "clientVersion": "7.4.2",
-  "engineVersion": "94a226be1cf2967af2541cca5529f0f7ba866919",
+  "clientVersion": "7.9.1",
+  "engineVersion": "e922089b7d7502aff4249d5da3420f6fa55fc6ad",
   "activeProvider": "sqlite",
   "inlineSchema": "// Prisma Schema for OpenList-TSWorker\n// 支持多种数据库适配器：MariaDB, PostgreSQL, MSSQL\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/saves/client\"\n}\n\ndatasource db {\n  provider = \"sqlite\" // 默认使用 SQLite，运行时通过适配器切换\n}\n\n// 挂载路径\nmodel mount {\n  mount_path String  @id @unique\n  mount_type String\n  is_enabled Int\n  drive_conf String?\n  drive_save String?\n  cache_time Int?    @default(0)\n  index_list Int?    @default(0)\n  proxy_mode Int?    @default(0)\n  proxy_data String?\n  drive_logs String?\n  drive_tips String?\n}\n\n// 用户信息\nmodel users {\n  users_name String  @id @unique\n  users_mail String\n  users_pass String\n  users_mask String\n  is_enabled Int\n  total_size Int?\n  total_used Int?\n  oauth_data String?\n  mount_data String?\n}\n\n// 授权认证系统配置\nmodel oauth {\n  oauth_name String @id @unique\n  oauth_type String\n  oauth_data String\n  is_enabled Int\n}\n\n// 授权认证用户绑定\nmodel binds {\n  oauth_uuid String @id @unique\n  oauth_name String\n  binds_user String\n  binds_data String\n  is_enabled Int\n}\n\n// 加密配置\nmodel crypt {\n  crypt_name String  @id @unique\n  crypt_pass String\n  crypt_type Int\n  crypt_mode Int\n  is_enabled Int\n  crypt_self Int?\n  rands_pass Int?\n  oauth_data String?\n  write_name String?\n}\n\n// 元组配置\nmodel mates {\n  mates_name String  @id @unique\n  mates_mask Int\n  mates_user Int\n  is_enabled Int\n  dir_hidden Int?\n  dir_shared Int?\n  set_zipped String?\n  set_parted String?\n  crypt_name String?\n  cache_time Int?\n}\n\n// 分享配置\nmodel share {\n  share_uuid String @id @unique\n  share_path String\n  share_pass String\n  share_user String\n  share_date Int\n  share_ends Int\n  is_enabled Int\n}\n\n// 连接配置\nmodel token {\n  token_uuid String @id @unique\n  token_path String\n  token_user String\n  token_type String\n  token_info String\n  is_enabled Int\n}\n\n// 任务配置\nmodel tasks {\n  tasks_uuid String @id @unique\n  tasks_type String\n  tasks_user String\n  tasks_info String\n  tasks_flag Int\n}\n\n// 离线下载\nmodel fetch {\n  fetch_uuid String @id @unique\n  fetch_from String\n  fetch_dest String\n  fetch_user String\n  fetch_flag Int\n}\n\n// 用户分组\nmodel group {\n  group_name String @id @unique\n  group_mask String\n  is_enabled Int\n\n  @@map(\"group\")\n}\n\n// 缓存信息\nmodel cache {\n  cache_path String @id @unique\n  cache_info Int?\n  cache_time Int?\n}\n\n// 全局设置\nmodel admin {\n  admin_keys String @id @unique\n  admin_data String\n}\n"
 }

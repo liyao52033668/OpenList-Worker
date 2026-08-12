@@ -43,6 +43,12 @@ const OAUTH_PROVIDERS: Record<string, { auth: string; token: string; userinfo: s
     },
 };
 
+// 百度网盘 OAuth 端点（挂载点表单「获取刷新令牌」使用）
+// 与第三方登录 OAuth 体系独立：client_id/client_secret 由前端表单临时提供，不入库
+const BAIDU_AUTH_URL = 'https://openapi.baidu.com/oauth/2.0/authorize';
+const BAIDU_TOKEN_URL = 'https://openapi.baidu.com/oauth/2.0/token';
+const BAIDU_CALLBACK_PATH = '/baidu-oauth-callback';
+
 export function authRoutes(app: Hono<any>) {
 
     // ------------------------------------------------------------------
@@ -240,6 +246,77 @@ export function authRoutes(app: Hono<any>) {
             token: loginResult.token,
             data: user,
         });
+    });
+
+    // ------------------------------------------------------------------
+    // POST /api/oauth/baidu/authurl — 生成百度网盘授权 URL
+    // Body: { client_id, redirect_uri? }
+    // 供挂载点表单「获取刷新令牌」按钮使用，client_id 由表单填写
+    // ------------------------------------------------------------------
+    app.post('/api/oauth/baidu/authurl', async (c: Context): Promise<any> => {
+        let body: any = {};
+        try { body = await c.req.json(); } catch { return errorResp(c, '请求体格式错误', 400); }
+
+        const clientId = String(body.client_id || '').trim();
+        if (!clientId) return errorResp(c, 'client_id 不能为空', 400);
+
+        const origin = new URL(c.req.url).origin;
+        const redirectUri = body.redirect_uri || `${origin}${BAIDU_CALLBACK_PATH}`;
+
+        const state = `baidu_${Math.random().toString(36).slice(2, 10)}_${Date.now()}`;
+        const params = new URLSearchParams({
+            response_type: 'code',
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            scope: 'basic,netdisk',
+            display: 'popup',
+            state,
+        });
+
+        return successResp(c, {
+            auth_url: `${BAIDU_AUTH_URL}?${params.toString()}`,
+            state,
+            redirect_uri: redirectUri,
+        });
+    });
+
+    // ------------------------------------------------------------------
+    // POST /api/oauth/baidu/exchange — 用授权码兑换 refresh_token
+    // Body: { code, client_id, client_secret, redirect_uri }
+    // 授权回调页把 code 回传前端后，由前端携带表单中的凭据调用本接口
+    // ------------------------------------------------------------------
+    app.post('/api/oauth/baidu/exchange', async (c: Context): Promise<any> => {
+        let body: any = {};
+        try { body = await c.req.json(); } catch { return errorResp(c, '请求体格式错误', 400); }
+
+        const { code, client_id, client_secret, redirect_uri } = body;
+        if (!code || !client_id || !client_secret) return errorResp(c, 'code/client_id/client_secret 不能为空', 400);
+
+        try {
+            const tokenResp = await fetch(BAIDU_TOKEN_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    code,
+                    client_id,
+                    client_secret,
+                    redirect_uri: redirect_uri || '',
+                }).toString(),
+            });
+            const data: any = await tokenResp.json();
+
+            if (data.error) return errorResp(c, data.error_description || data.error, 400);
+            if (!data.refresh_token) return errorResp(c, '百度未返回 refresh_token', 400);
+
+            return successResp(c, {
+                access_token: data.access_token || '',
+                refresh_token: data.refresh_token,
+                expires_in: data.expires_in || 0,
+            });
+        } catch (error) {
+            return errorResp(c, '交换 token 失败: ' + (error as Error).message, 502);
+        }
     });
 
     // ------------------------------------------------------------------

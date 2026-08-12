@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Input, InputNumber, Select, Switch, Typography, Alert, Tag, Row, Col, Card, Divider, Space, Spin } from 'antd'
-import { PlusOutlined, ReloadOutlined, UndoOutlined } from '@ant-design/icons'
+import { Button, Modal, Input, InputNumber, Select, Switch, Typography, Alert, Tag, Row, Col, Card, Divider, Space, Spin, message } from 'antd'
+import { PlusOutlined, ReloadOutlined, UndoOutlined, LinkOutlined } from '@ant-design/icons'
 import DataTable from '../../components/DataTable';
 import type { MountConfig } from '../../types';
 import apiService from '../../posts/api';
+import oauthService from '../../services/OAuthService';
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -63,6 +64,8 @@ const MountManagement: React.FC = () => {
   const [driverFields, setDriverFields] = useState<DriverField[]>([]);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [error, setError] = useState<string>('');
+  const [baiduOAuthLoading, setBaiduOAuthLoading] = useState(false);
+  const [baiduOAuthAuthorizing, setBaiduOAuthAuthorizing] = useState(false);
 
   // 加载挂载点列表
   const loadMounts = async () => {
@@ -322,6 +325,68 @@ const MountManagement: React.FC = () => {
       setError(err.message || '保存失败');
     }
   };
+
+  // 百度网盘：打开授权窗口获取刷新令牌
+  const handleBaiduOAuth = async () => {
+    const clientId = formData.client_id;
+    const clientSecret = formData.client_secret;
+    if (!clientId || !clientSecret) {
+      setError('请先在下方驱动配置中填写客户端ID（AppID）和客户端密钥（SecretKey）');
+      return;
+    }
+    setBaiduOAuthLoading(true);
+    try {
+      const redirectUri = `${window.location.origin}/baidu-oauth-callback`;
+      const { auth_url } = await oauthService.getBaiduAuthUrl(clientId, redirectUri);
+      if (!auth_url) {
+        throw new Error('获取授权链接失败');
+      }
+      window.open(auth_url, '_blank', 'width=900,height=680');
+      setBaiduOAuthAuthorizing(true);
+    } catch (err: any) {
+      setError(err.message || '获取授权链接失败');
+    } finally {
+      setBaiduOAuthLoading(false);
+    }
+  };
+
+  // 监听百度授权回调：拿到授权码后兑换 refresh_token 并自动回填
+  useEffect(() => {
+    const handler = async (e: MessageEvent) => {
+      // 仅接受同源消息
+      if (e.origin !== window.location.origin) return;
+      const data = e.data;
+      if (!data || data.source !== 'openlist-baidu-oauth') return;
+
+      if (data.error) {
+        setBaiduOAuthAuthorizing(false);
+        setError(`百度授权失败：${data.error}`);
+        return;
+      }
+      if (!data.code) return;
+
+      setBaiduOAuthAuthorizing(false);
+      const clientId = formData.client_id;
+      const clientSecret = formData.client_secret;
+      if (!clientId || !clientSecret) {
+        setError('缺少客户端ID/客户端密钥，无法兑换刷新令牌');
+        return;
+      }
+      try {
+        const redirectUri = `${window.location.origin}/baidu-oauth-callback`;
+        const result: any = await oauthService.exchangeBaiduCode(data.code, clientId, clientSecret, redirectUri);
+        const token = result?.refresh_token || result?.data?.refresh_token;
+        if (!token) throw new Error('未获取到刷新令牌');
+        setFormData(prev => ({ ...prev, refresh_token: token }));
+        message.success('已获取刷新令牌并自动填入');
+      } catch (err: any) {
+        setError(`获取刷新令牌失败：${err.message || '未知错误'}`);
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.client_id, formData.client_secret]);
 
   // 单个挂载点重新加载
   const handleReload = async (mount: MountConfig) => {
@@ -678,6 +743,32 @@ const MountManagement: React.FC = () => {
                 驱动配置
               </Title>
               <Card size="small" style={{ borderRadius: 8 }}>
+                {selectedDriver === 'baiduyun' && (
+                  <div style={{ marginBottom: 16 }}>
+                    <Space direction="vertical" style={{ width: '100%' }} size={8}>
+                      <Space>
+                        <Button
+                          type="primary"
+                          ghost
+                          icon={<LinkOutlined />}
+                          loading={baiduOAuthLoading}
+                          onClick={handleBaiduOAuth}
+                        >
+                          获取刷新令牌
+                        </Button>
+                        {baiduOAuthAuthorizing && (
+                          <Text type="secondary">请在弹出的窗口完成百度授权，成功后令牌将自动填入…</Text>
+                        )}
+                      </Space>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        先填好下方「客户端ID」和「客户端密钥」（百度开放平台 pan.baidu.com/union 创建应用获取），
+                        再点此按钮授权。请将回调地址{' '}
+                        <Text code style={{ fontSize: 12 }}>{window.location.origin}/baidu-oauth-callback</Text>
+                        {' '}添加到百度应用的「授权回调地址」中。
+                      </Text>
+                    </Space>
+                  </div>
+                )}
                 {driverFields.map((field) => renderFormField(field))}
               </Card>
             </>
