@@ -88,6 +88,20 @@ export function setupRoutes(app: Hono<any>) {
     });
 
     // ------------------------------------------------------------------
+    // GET /@system/info/none — 获取系统信息（兼容 README/旧文档路径）
+    // 与 /@setup/info/none 等价，需要认证
+    // ------------------------------------------------------------------
+    app.get('/@system/info/none', async (c: Context): Promise<any> => {
+        const authResult = await UsersManage.checkAuth(c);
+        if (!authResult.flag) return errorResp(c, authResult.text || '未登录', 401);
+
+        const system = new SystemManage(c);
+        const result = await system.getSystemInfo();
+        if (!result.flag) return errorResp(c, result.text || '获取系统信息失败', 500);
+        return successResp(c, result.data);
+    });
+
+    // ------------------------------------------------------------------
     // GET /api/system/health — 系统健康检查（公开）
     // 检查 JWT_SECRET 是否已配置，未配置时返回 config_required 错误
     // ------------------------------------------------------------------
