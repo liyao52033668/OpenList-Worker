@@ -223,10 +223,11 @@ const MountManagement: React.FC = () => {
   const handleEdit = async (mount: MountConfig) => {
     setEditingMount(mount);
     
-    // 解析现有配置
+    // 解析现有配置（兼容内部 drive_conf 与 Go 风格接口返回的 addition）
     let driveConf = {};
     try {
-      driveConf = mount.drive_conf ? JSON.parse(mount.drive_conf) : {};
+      const rawConf = mount.drive_conf ?? mount.addition ?? '{}';
+      driveConf = typeof rawConf === 'string' ? JSON.parse(rawConf) : (rawConf || {});
     } catch (err) {
       console.error('解析配置失败:', err);
     }
@@ -236,11 +237,11 @@ const MountManagement: React.FC = () => {
       mount_path: mount.mount_path,
       mount_type: mount.mount_type,
       is_enabled: mount.is_enabled === 1,
-      cache_time: mount.cache_time || 3600,
-      index_list: mount.index_list || 1,
-      proxy_mode: mount.proxy_mode || 0,
-      proxy_data: mount.proxy_data || '',
-      drive_tips: mount.drive_tips || '',
+      cache_time: mount.cache_time ?? 3600,
+      index_list: mount.index_list ?? mount.order ?? 1,
+      proxy_mode: mount.proxy_mode ?? 0,
+      proxy_data: mount.proxy_data ?? '',
+      drive_tips: mount.drive_tips ?? mount.remark ?? '',
       ...driveConf
     };
     setFormData(editFormData);

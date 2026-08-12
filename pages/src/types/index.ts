@@ -15,6 +15,7 @@ export interface MountConfig {
   mount_type?: string;
   is_enabled?: number;
   drive_conf?: string;
+  addition?: string; // Go 风格接口返回的驱动配置（JSON 字符串）
   drive_save?: string;
   cache_time?: number;
   index_list?: number;
@@ -22,6 +23,8 @@ export interface MountConfig {
   proxy_data?: string;
   drive_logs?: string;
   drive_tips?: string;
+  remark?: string; // Go 风格接口返回的备注
+  order?: number;  // Go 风格接口返回的序号
 }
 
 // 用户信息（用于前端显示）
