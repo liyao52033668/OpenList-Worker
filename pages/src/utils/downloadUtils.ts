@@ -124,12 +124,16 @@ export const downloadFile = async ({
       // JSON响应，按原来的方式处理
       const responseData = await response.json();
       
-      if (responseData && responseData.flag && responseData.data && responseData.data.length > 0) {
-        const downloadData = responseData.data[0];
-        const directUrl = downloadData.direct;
-        const headers = downloadData.header || {};
-        
-        if (directUrl) {
+      // 兼容两种返回格式：
+      //   新版 /api/fs/link  → { code, message, data: { url, header } }
+      //   旧版/AList 风格   → { flag, data: [ { direct, header } ] }
+      const raw = responseData?.data;
+      const rawList = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+      const first = rawList[0] || {};
+      const directUrl = first.direct || first.url || raw?.url || raw?.direct || '';
+      const headers = first.header || raw?.header || {};
+
+      if (directUrl) {
           // 检查header字段是否不为空
           const hasHeaders = headers && Object.keys(headers).length > 0;
           
@@ -232,11 +236,17 @@ export const downloadFile = async ({
             onSuccess?.();
           }
         } else {
-          onError?.('获取下载链接失败');
+          // 大文件等拿不到直链(url为空)时，回退到同源 /d 直链下载。
+          // 后端 /d/* 会自动选择：小文件 302 重定向、大文件流式代理。
+          const fallbackUrl = '/d' + (fullFilePath.startsWith('/') ? fullFilePath : '/' + fullFilePath);
+          const fallbackLink = document.createElement('a');
+          fallbackLink.href = fallbackUrl;
+          fallbackLink.download = fileInfo.name;
+          document.body.appendChild(fallbackLink);
+          fallbackLink.click();
+          document.body.removeChild(fallbackLink);
+          onSuccess?.();
         }
-      } else {
-        onError?.('获取下载链接失败');
-      }
     } else {
       // 流式响应，直接处理
       if (!response.ok) {
