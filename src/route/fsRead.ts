@@ -232,9 +232,11 @@ export function fsReadRoutes(app: Hono<any>) {
     app.get('/api/fs/dirs', async (c: Context): Promise<any> => {
         const path = c.req.query('path') || '/';
         const password = c.req.query('password') || '';
+        const forceRoot = c.req.query('force_root') === 'true' || c.req.query('force_root') === '1';
 
         const mountManage = new MountManage(c);
-        const driveLoad = await mountManage.loader(path, true, true);
+        // force_root=true 时强制从根目录列出（用于选择目标目录时的根挂载视图）
+        const driveLoad = await mountManage.loader(forceRoot ? '/' : path, true, true);
         if (!driveLoad) return errorResp(c, '路径不存在', 404);
 
         let dirs: any[] = [];
@@ -273,7 +275,8 @@ export function fsReadRoutes(app: Hono<any>) {
     // ------------------------------------------------------------------
     app.post('/api/fs/search', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const path: string = body.path || '/';
+        // 兼容前端字段名 parent 与后端字段名 path
+        const path: string = body.path ?? body.parent ?? '/';
         const keywords: string = body.keywords || '';
         const page: number = parseInt(body.page) || 1;
         const perPage: number = parseInt(body.per_page) || 30;

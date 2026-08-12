@@ -40,22 +40,33 @@ async function parseBody(c: Context): Promise<Record<string, any>> {
     }
 }
 
-/** 将 ShareConfig（TSWorker 格式）转换为 GO 后端 SharingResp 格式 */
+/** 将 ShareConfig（TSWorker 格式）转换为 GO 后端 SharingResp 格式，同时补充前端所需字段 */
 function toSharingResp(share: any): any {
-    return {
+    const filesArr = Array.isArray(share.share_path) ? share.share_path : [share.share_path];
+    const disabled = share.is_enabled === 0;
+    const base = {
         id: share.share_uuid,
-        files: Array.isArray(share.share_path) ? share.share_path : [share.share_path],
+        files: filesArr,
         expires: share.share_ends || null,
         pwd: share.share_pass || '',
         accessed: share.accessed || 0,
         max_accessed: share.max_accessed || 0,
-        disabled: share.is_enabled === 0,
+        disabled,
         remark: share.remark || '',
         readme: share.readme || '',
         header: share.header || '',
         creator: share.share_user || '',
         creator_role: 0,
+        // 前端兼容字段
+        share_uuid: share.share_uuid,
+        share_path: filesArr[0] || '',
+        share_pass: share.share_pass || '',
+        share_user: share.share_user || '',
+        share_date: share.share_date || '',
+        share_ends: share.share_ends || null,
+        is_enabled: disabled ? 0 : 1,
     };
+    return base;
 }
 
 // ============================================================
@@ -129,20 +140,28 @@ export function sharingRoutes(app: Hono<any>) {
         if (!user) return errorResp(c, '未登录', 401);
 
         const body = await parseBody(c);
-        const files: string[] = body.files || [];
+
+        // 双字段兼容：GO 风格（files/pwd/expires/disabled/id）+ 前端风格（share_path/share_pass/share_ends/is_enabled/share_uuid）
+        const files: string[] = body.files ?? (body.share_path ? [body.share_path] : undefined) ?? [];
         if (!files.length || (files.length === 1 && files[0] === '')) {
             return errorResp(c, '至少需要一个文件路径', 400);
         }
 
+        const pwd: string = body.pwd ?? body.share_pass ?? '';
+        const expires: string = body.expires ?? body.share_ends ?? '';
+        // disabled 与 is_enabled 语义相反：is_enabled=1 表示启用，disabled=true 表示禁用
+        const disabled: boolean = body.disabled !== undefined ? !!body.disabled : !(body.is_enabled === 1 || body.is_enabled === true);
+        const id: string = body.id ?? body.share_uuid ?? '';
+
         const shareManage = new ShareManage(c);
         const result = await shareManage.create({
-            share_uuid: body.id || '',
+            share_uuid: id,
             share_path: files[0], // 主路径（兼容现有数据模型）
-            share_pass: body.pwd || '',
+            share_pass: pwd,
             share_user: user.users_name,
             share_date: new Date().toISOString(),
-            share_ends: body.expires || '',
-            is_enabled: body.disabled ? 0 : 1,
+            share_ends: expires,
+            is_enabled: disabled ? 0 : 1,
             // 扩展字段
             ...(body.remark && { remark: body.remark }),
             ...(body.readme && { readme: body.readme }),
@@ -167,7 +186,9 @@ export function sharingRoutes(app: Hono<any>) {
         if (!user) return errorResp(c, '未登录', 401);
 
         const body = await parseBody(c);
-        const id: string = body.id;
+
+        // 双字段兼容
+        const id: string = body.id ?? body.share_uuid ?? '';
         if (!id) return errorResp(c, 'id 不能为空', 400);
 
         const shareManage = new ShareManage(c);
@@ -181,14 +202,18 @@ export function sharingRoutes(app: Hono<any>) {
             return errorResp(c, '分享不存在', 404);
         }
 
-        const files: string[] = body.files || [];
+        const files: string[] = body.files ?? (body.share_path ? [body.share_path] : undefined) ?? [];
+        const pwd: string | undefined = body.pwd ?? body.share_pass;
+        const expires: string | undefined = body.expires ?? body.share_ends;
+        const disabled: boolean | undefined = body.disabled !== undefined ? !!body.disabled : (body.is_enabled !== undefined ? !(body.is_enabled === 1 || body.is_enabled === true) : undefined);
+
         const updateData: any = {
             ...share,
             share_uuid: id,
             ...(files.length > 0 && { share_path: files[0] }),
-            ...(body.pwd !== undefined && { share_pass: body.pwd }),
-            ...(body.expires !== undefined && { share_ends: body.expires }),
-            ...(body.disabled !== undefined && { is_enabled: body.disabled ? 0 : 1 }),
+            ...(pwd !== undefined && { share_pass: pwd }),
+            ...(expires !== undefined && { share_ends: expires }),
+            ...(disabled !== undefined && { is_enabled: disabled ? 0 : 1 }),
             ...(body.remark !== undefined && { remark: body.remark }),
             ...(body.readme !== undefined && { readme: body.readme }),
             ...(body.header !== undefined && { header: body.header }),

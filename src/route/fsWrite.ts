@@ -370,6 +370,9 @@ export function fsWriteRoutes(app: Hono<any>) {
             url,
             path,
             status: 'pending',
+            // 读取前端传入的下载工具与删除策略（虽暂未真正执行，但不再丢弃）
+            tool: body.tool || 'aria2',
+            delete_policy: body.delete_policy || 'delete_on_upload_succeed',
         }));
 
         return successResp(c, { tasks });
@@ -381,9 +384,14 @@ export function fsWriteRoutes(app: Hono<any>) {
     app.post('/api/fs/batch_rename', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
         const srcDir: string = body.src_dir;
-        const renamePairs: Array<{ src_name: string; dst_name: string }> = body.rename_pairs || [];
+        // 兼容 Go 风格字段（rename_pairs/dst_name）与前端字段（rename_objects/new_name）
+        const rawPairs: any[] = body.rename_pairs || body.rename_objects || [];
         if (!srcDir) return errorResp(c, 'src_dir 不能为空', 400);
-        if (!renamePairs.length) return errorResp(c, 'rename_pairs 不能为空', 400);
+        if (!rawPairs.length) return errorResp(c, 'rename_pairs 不能为空', 400);
+        const renamePairs: Array<{ src_name: string; dst_name: string }> = rawPairs.map((p: any) => ({
+            src_name: p.src_name,
+            dst_name: p.dst_name ?? p.new_name,
+        }));
 
         const results: any[] = [];
         for (const pair of renamePairs) {

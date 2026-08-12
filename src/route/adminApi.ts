@@ -18,7 +18,27 @@ import { MatesManage } from '../mates/MatesManage';
 import { CryptManage } from '../crypt/CryptManage';
 import { TokenManage } from '../token/TokenManage';
 import { MediaManage } from '../media/MediaManage';
+import { GroupManage } from '../group/GroupManage';
+import { OauthManage } from '../oauth/OauthManage';
+import { SavesManage } from '../saves/SavesManage';
 import { successResp, errorResp } from '../types/HttpResponse';
+
+// 备份/恢复涉及的数据表及主键字段
+const BACKUP_TABLES: Record<string, string> = {
+    admin: 'admin_keys',
+    mount: 'mount_path',
+    users: 'users_name',
+    oauth: 'oauth_name',
+    binds: 'oauth_uuid',
+    crypt: 'crypt_name',
+    mates: 'mates_name',
+    share: 'share_uuid',
+    token: 'token_uuid',
+    tasks: 'tasks_uuid',
+    fetch: 'fetch_uuid',
+    group: 'group_name',
+    cache: 'cache_path',
+};
 
 // ============================================================
 // 工具函数
@@ -141,15 +161,28 @@ export function adminApiRoutes(app: Hono<any>) {
     }
 
     // GET /api/admin/user/list
+    // 支持 ?username=xxx 按用户名搜索；支持 ?oauth=1 返回 OAuth 配置列表（OAuthManagement 页面使用）
     app.get('/api/admin/user/list', async (c: Context): Promise<any> => {
+        // OAuth 配置列表分支
+        if (c.req.query('oauth')) {
+            const oauthManage = new OauthManage(c);
+            const oauthResult = await oauthManage.select();
+            if (!oauthResult.flag) return errorResp(c, oauthResult.text || '查询失败', 500);
+            return successResp(c, oauthResult.data || []);
+        }
+
         const page = parseInt(c.req.query('page') || '1');
         const perPage = parseInt(c.req.query('per_page') || '30');
+        const username = c.req.query('username') || '';
 
         const usersManage = new UsersManage(c);
         const result = await usersManage.select();
         if (!result.flag) return errorResp(c, result.text || '查询失败', 500);
 
-        const all = result.data || [];
+        let all = (result.data || []) as any[];
+        if (username) {
+            all = all.filter((u: any) => (u.users_name || '').toLowerCase().includes(username.toLowerCase()));
+        }
         const total = all.length;
         const start = (page - 1) * perPage;
         const content = all.slice(start, start + perPage).map((u: any, i: number) => toGoUser(u, start + i));
@@ -177,6 +210,18 @@ export function adminApiRoutes(app: Hono<any>) {
     // Body: { username, password, base_path?, role?, disabled?, permission? }
     app.post('/api/admin/user/create', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
+        // OAuth 配置创建分支（OAuthManagement 页面发送 oauth_name/oauth_type/oauth_data）
+        if (body.oauth_name && !body.username && !body.users_name) {
+            const oauthManage = new OauthManage(c);
+            const oauthResult = await oauthManage.create({
+                oauth_name: body.oauth_name,
+                oauth_type: body.oauth_type || '',
+                oauth_data: body.oauth_data || '{}',
+                is_enabled: body.is_enabled ?? 1,
+            });
+            if (!oauthResult.flag) return errorResp(c, oauthResult.text || '创建失败', 400);
+            return successResp(c);
+        }
         const roleToMask: Record<number, string> = { 2: 'admin', 1: 'guest', 0: '' };
         const usersManage = new UsersManage(c);
         const result = await usersManage.create({
@@ -198,6 +243,23 @@ export function adminApiRoutes(app: Hono<any>) {
     // Body: { id, username, password?, base_path?, disabled?, permission? }
     app.post('/api/admin/user/update', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
+        // OAuth 配置更新分支（OAuthManagement 页面发送 oauth_name + is_enabled/oauth_type/oauth_data）
+        if (body.oauth_name && !body.username && !body.users_name) {
+            const oauthManage = new OauthManage(c);
+            if (body.is_enabled !== undefined) {
+                const r = await oauthManage.toggleStatus(body.oauth_name, body.is_enabled === 1 ? 1 : 0);
+                if (!r.flag) return errorResp(c, r.text || '更新失败', 400);
+            }
+            if (body.oauth_type) {
+                const r = await oauthManage.updateType(body.oauth_name, body.oauth_type);
+                if (!r.flag) return errorResp(c, r.text || '更新失败', 400);
+            }
+            if (body.oauth_data) {
+                const r = await oauthManage.updateData(body.oauth_name, body.oauth_data);
+                if (!r.flag) return errorResp(c, r.text || '更新失败', 400);
+            }
+            return successResp(c);
+        }
         const username = body.username ?? body.users_name;
         if (!username) return errorResp(c, 'username 不能为空', 400);
 
@@ -226,7 +288,14 @@ export function adminApiRoutes(app: Hono<any>) {
     // POST /api/admin/user/delete?id=xxx
     app.post('/api/admin/user/delete', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const username = body.username || c.req.query('username') || c.req.query('id') || '';
+        // OAuth 配置删除分支（OAuthManagement 页面发送 oauth_name）
+        if (body.oauth_name && !body.username && !body.users_name) {
+            const oauthManage = new OauthManage(c);
+            const oauthResult = await oauthManage.remove(body.oauth_name);
+            if (!oauthResult.flag) return errorResp(c, oauthResult.text || '删除失败', 400);
+            return successResp(c);
+        }
+        const username = body.username || body.users_name || c.req.query('username') || c.req.query('id') || '';
         if (!username) return errorResp(c, 'id 不能为空', 400);
 
         const usersManage = new UsersManage(c);
@@ -256,6 +325,86 @@ export function adminApiRoutes(app: Hono<any>) {
     app.post('/api/admin/user/del_cache', async (c: Context): Promise<any> => {
         // TSWorker 无内存缓存，直接返回成功
         return successResp(c);
+    });
+
+    // ============================================================
+    // 用户分组管理 /api/admin/group/*
+    // ============================================================
+
+    // GET /api/admin/group/list
+    app.get('/api/admin/group/list', async (c: Context): Promise<any> => {
+        const groupManage = new GroupManage(c);
+        const result = await groupManage.select();
+        if (!result.flag) return errorResp(c, result.text || '查询失败', 500);
+        return successResp(c, result.data || []);
+    });
+
+    // POST /api/admin/group/create
+    app.post('/api/admin/group/create', async (c: Context): Promise<any> => {
+        const body = await parseBody(c);
+        if (!body.group_name) return errorResp(c, 'group_name 不能为空', 400);
+
+        const groupManage = new GroupManage(c);
+        const result = await groupManage.create({
+            group_name: body.group_name,
+            group_mask: body.group_mask || '',
+            is_enabled: body.is_enabled ?? 1,
+        });
+        if (!result.flag) return errorResp(c, result.text || '创建失败', 400);
+        return successResp(c);
+    });
+
+    // POST /api/admin/group/update — 更新分组权限掩码或启用状态
+    app.post('/api/admin/group/update', async (c: Context): Promise<any> => {
+        const body = await parseBody(c);
+        if (!body.group_name) return errorResp(c, 'group_name 不能为空', 400);
+
+        const groupManage = new GroupManage(c);
+        if (body.group_mask !== undefined && body.group_mask !== '') {
+            const r = await groupManage.updateMask(body.group_name, body.group_mask);
+            if (!r.flag) return errorResp(c, r.text || '更新失败', 400);
+        }
+        if (body.is_enabled !== undefined) {
+            const r = await groupManage.toggleStatus(body.group_name, body.is_enabled === 1 ? 1 : 0);
+            if (!r.flag) return errorResp(c, r.text || '更新失败', 400);
+        }
+        return successResp(c);
+    });
+
+    // POST /api/admin/group/delete
+    app.post('/api/admin/group/delete', async (c: Context): Promise<any> => {
+        const body = await parseBody(c);
+        if (!body.group_name) return errorResp(c, 'group_name 不能为空', 400);
+
+        const groupManage = new GroupManage(c);
+        const result = await groupManage.remove(body.group_name);
+        if (!result.flag) return errorResp(c, result.text || '删除失败', 400);
+        return successResp(c);
+    });
+
+    // ============================================================
+    // OAuth 配置管理 /api/admin/oauth/*
+    // ============================================================
+
+    // GET /api/admin/oauth/list — OAuth 提供商配置列表（管理员查看全部配置）
+    app.get('/api/admin/oauth/list', async (c: Context): Promise<any> => {
+        const oauthManage = new OauthManage(c);
+        const result = await oauthManage.select();
+        if (!result.flag) return errorResp(c, result.text || '查询失败', 500);
+        return successResp(c, result.data || []);
+    });
+
+    // GET /api/public/oauth/providers — 公开 OAuth 提供商列表（登录页/绑定页，无需认证，不含敏感配置）
+    app.get('/api/public/oauth/providers', async (c: Context): Promise<any> => {
+        const oauthManage = new OauthManage(c);
+        const result = await oauthManage.getEnabledOauth();
+        if (!result.flag) return errorResp(c, result.text || '查询失败', 500);
+        const providers = (result.data || []).map((p: any) => ({
+            oauth_name: p.oauth_name,
+            oauth_type: p.oauth_type,
+            is_enabled: p.is_enabled ?? 1,
+        }));
+        return successResp(c, providers);
     });
 
     // ============================================================
@@ -289,6 +438,12 @@ export function adminApiRoutes(app: Hono<any>) {
             down_proxy_url: '',
             enable_sign: false,
             disable_index: false,
+            // 补充 TSWorker 字段（兼容前端 MountManagement）
+            is_enabled: m.is_enabled ? 1 : 0,
+            cache_time: m.cache_time ?? 30,
+            proxy_mode: m.proxy_mode ?? 0,
+            proxy_data: m.proxy_data || '',
+            drive_logs: m.drive_logs || '',
         };
     }
 
@@ -588,6 +743,46 @@ export function adminApiRoutes(app: Hono<any>) {
         return successResp(c, { message: 'Token重置成功，新密钥已保存，所有已登录用户需要重新登录' });
     });
 
+    // GET /api/admin/setting/backup — 导出全部配置数据
+    app.get('/api/admin/setting/backup', async (c: Context): Promise<any> => {
+        const db = new SavesManage(c);
+        const backup: Record<string, any[]> = {};
+        for (const main of Object.keys(BACKUP_TABLES)) {
+            try {
+                const r = await db.find({ main, keys: {} });
+                backup[main] = r.data || [];
+            } catch {
+                backup[main] = [];
+            }
+        }
+        return successResp(c, backup);
+    });
+
+    // POST /api/admin/setting/restore — 从备份数据恢复（按主键 upsert，不删除多余记录）
+    app.post('/api/admin/setting/restore', async (c: Context): Promise<any> => {
+        const body = await parseBody(c);
+        const backup = body.backup_data || body;
+        if (!backup || typeof backup !== 'object') return errorResp(c, '备份数据无效', 400);
+
+        const db = new SavesManage(c);
+        for (const main of Object.keys(BACKUP_TABLES)) {
+            const records = backup[main];
+            if (!Array.isArray(records)) continue;
+            const keyField = BACKUP_TABLES[main];
+            for (const rec of records) {
+                if (!rec || typeof rec !== 'object') continue;
+                const keyVal = rec[keyField];
+                if (!keyVal) continue;
+                try {
+                    await db.save({ main, keys: { [keyField]: keyVal }, data: rec });
+                } catch (e) {
+                    console.error(`恢复 ${main}/${keyVal} 失败:`, e);
+                }
+            }
+        }
+        return successResp(c, { message: '数据恢复成功' });
+    });
+
     // ============================================================
     // 路径元数据 /api/admin/meta/*
     // 字段映射（Go后端 → TSWorker内部）：
@@ -620,6 +815,17 @@ export function adminApiRoutes(app: Hono<any>) {
             r_sub: m.readme_sub ?? false,
             header: m.header || '',
             header_sub: m.header_sub ?? false,
+            // 补充 TSWorker 字段（兼容前端 PathRules）
+            mates_name: m.mates_name,
+            mates_mask: m.mates_mask ?? 0,
+            mates_user: m.mates_user ?? 0,
+            is_enabled: m.is_enabled ?? 1,
+            dir_hidden: m.dir_hidden ?? 0,
+            dir_shared: m.dir_shared ?? 0,
+            set_zipped: m.set_zipped || '',
+            set_parted: m.set_parted || '',
+            crypt_name: m.crypt_name || '',
+            cache_time: m.cache_time ?? 0,
         };
     }
 
@@ -674,28 +880,34 @@ export function adminApiRoutes(app: Hono<any>) {
     });
 
     // POST /api/admin/meta/create
-    // Body: { path, password?, write?, w_sub?, p_sub?, hide?, h_sub?, readme?, r_sub?, header?, header_sub? }
+    // Body (Go):   { path, password?, write?, w_sub?, p_sub?, hide?, h_sub?, readme?, r_sub?, header?, header_sub? }
+    // Body (前端): { mates_name, mates_mask?, mates_user?, is_enabled?, dir_hidden?, dir_shared?, set_zipped?, set_parted?, crypt_name?, cache_time? }
     app.post('/api/admin/meta/create', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        if (!body.path) return errorResp(c, 'path 不能为空', 400);
+        const path = body.path ?? body.mates_name;
+        if (!path) return errorResp(c, 'path 不能为空', 400);
 
         const matesManage = new MatesManage(c);
         const result = await matesManage.create({
-            mates_name: body.path,
-            mates_mask: body.write ? 1 : 0,
-            mates_user: 0,
-            is_enabled: 1,
-            dir_hidden: body.hide ? 1 : 0,
-            dir_shared: body.write ? 1 : 0,
-            mates_pass: body.password || '',
+            mates_name: path,
+            mates_mask: body.mates_mask ?? (body.write ? 1 : 0),
+            mates_user: body.mates_user ?? 0,
+            is_enabled: body.is_enabled ?? 1,
+            dir_hidden: body.dir_hidden ?? (body.hide ? 1 : 0),
+            dir_shared: body.dir_shared ?? (body.write ? 1 : 0),
+            mates_pass: body.password || body.mates_pass || '',
             p_sub: body.p_sub ?? false,
             w_sub: body.w_sub ?? false,
             h_sub: body.h_sub ?? false,
-            hide_pattern: typeof body.hide === 'string' ? body.hide : '',
+            hide_pattern: typeof (body.hide ?? body.dir_hidden) === 'string' ? (body.hide ?? body.dir_hidden) : '',
             readme: body.readme || '',
             readme_sub: body.r_sub ?? false,
             header: body.header || '',
             header_sub: body.header_sub ?? false,
+            set_zipped: body.set_zipped || '',
+            set_parted: body.set_parted || '',
+            crypt_name: body.crypt_name || '',
+            cache_time: body.cache_time ?? 0,
         } as any);
 
         if (!result.flag) return errorResp(c, result.text || '创建失败', 500);
@@ -703,10 +915,11 @@ export function adminApiRoutes(app: Hono<any>) {
     });
 
     // POST /api/admin/meta/update
-    // Body: { id, path?, password?, write?, w_sub?, p_sub?, hide?, h_sub?, readme?, r_sub?, header?, header_sub? }
+    // Body (Go):   { id, path?, password?, write?, w_sub?, p_sub?, hide?, h_sub?, readme?, r_sub?, header?, header_sub? }
+    // Body (前端): { mates_name, mates_mask?, is_enabled?, dir_hidden?, dir_shared?, set_zipped?, set_parted?, crypt_name?, cache_time? }
     app.post('/api/admin/meta/update', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const idOrPath = body.id !== undefined ? String(body.id) : (body.path || '');
+        const idOrPath = body.id !== undefined ? String(body.id) : (body.path || body.mates_name || '');
         if (!idOrPath) return errorResp(c, 'id 不能为空', 400);
 
         const matesManage = new MatesManage(c);
@@ -715,19 +928,27 @@ export function adminApiRoutes(app: Hono<any>) {
 
         const existing = found[0] as any;
         const updateData: any = { mates_name: existing.mates_name };
-        if (body.password !== undefined) updateData.mates_pass = body.password;
-        if (body.write !== undefined) updateData.dir_shared = body.write ? 1 : 0;
+        if (body.password !== undefined || body.mates_pass !== undefined) updateData.mates_pass = body.password ?? body.mates_pass;
+        if (body.write !== undefined || body.dir_shared !== undefined) updateData.dir_shared = (body.write ?? body.dir_shared) ? 1 : 0;
         if (body.w_sub !== undefined) updateData.w_sub = body.w_sub;
         if (body.p_sub !== undefined) updateData.p_sub = body.p_sub;
-        if (body.hide !== undefined) {
-            updateData.dir_hidden = body.hide ? 1 : 0;
-            if (typeof body.hide === 'string') updateData.hide_pattern = body.hide;
+        if (body.hide !== undefined || body.dir_hidden !== undefined) {
+            const hideVal = body.hide ?? body.dir_hidden;
+            updateData.dir_hidden = hideVal ? 1 : 0;
+            if (typeof hideVal === 'string') updateData.hide_pattern = hideVal;
         }
         if (body.h_sub !== undefined) updateData.h_sub = body.h_sub;
         if (body.readme !== undefined) updateData.readme = body.readme;
         if (body.r_sub !== undefined) updateData.readme_sub = body.r_sub;
         if (body.header !== undefined) updateData.header = body.header;
         if (body.header_sub !== undefined) updateData.header_sub = body.header_sub;
+        if (body.mates_mask !== undefined) updateData.mates_mask = body.mates_mask;
+        if (body.mates_user !== undefined) updateData.mates_user = body.mates_user;
+        if (body.is_enabled !== undefined) updateData.is_enabled = body.is_enabled;
+        if (body.set_zipped !== undefined) updateData.set_zipped = body.set_zipped;
+        if (body.set_parted !== undefined) updateData.set_parted = body.set_parted;
+        if (body.crypt_name !== undefined) updateData.crypt_name = body.crypt_name;
+        if (body.cache_time !== undefined) updateData.cache_time = body.cache_time;
 
         const result = await matesManage.config({ ...existing, ...updateData });
         if (!result.flag) return errorResp(c, result.text || '更新失败', 500);
@@ -737,7 +958,7 @@ export function adminApiRoutes(app: Hono<any>) {
     // POST /api/admin/meta/delete?id=xxx
     app.post('/api/admin/meta/delete', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const idOrPath = body.id !== undefined ? String(body.id) : (body.path || c.req.query('id') || '');
+        const idOrPath = body.id !== undefined ? String(body.id) : (body.path || body.mates_name || c.req.query('id') || '');
         if (!idOrPath) return errorResp(c, 'id 不能为空', 400);
 
         const matesManage = new MatesManage(c);

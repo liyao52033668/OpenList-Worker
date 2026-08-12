@@ -74,14 +74,10 @@ const OAuthBinding: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // 获取启用的OAuth提供商（新版 API）
-      const providersResult = await apiService.get('/api/admin/oauth/list');
-      if (!providersResult.flag) {
-        setError('获取OAuth提供商失败');
-        return;
-      }
-
-      setProviders(providersResult.data || []);
+      // 获取OAuth提供商（公开接口：拦截器已剥出 data，为配置数组）
+      const providersResult: any = await apiService.get('/api/public/oauth/providers');
+      const providers = Array.isArray(providersResult) ? providersResult : (providersResult?.data || []);
+      setProviders(providers);
 
       // 获取用户的OAuth绑定（新版 API：GET /api/me，拦截器已剥出 data，即用户对象）
       if (state.user?.username) {
@@ -118,24 +114,24 @@ const OAuthBinding: React.FC = () => {
       setProcessing(true);
       setError('');
 
-      // 生成授权URL（新版 API）
+      // 生成授权URL（新版 API：拦截器已剥出 data，为 { auth_url, state }）
       const redirectUri = `${window.location.origin}/oauth/callback`;
-      const result = await apiService.post(`/api/auth/sso`, {
+      const result: any = await apiService.post(`/api/auth/sso`, {
         provider: provider.oauth_name,
         redirect_uri: redirectUri,
         state: `bind_${Date.now()}`
       });
 
-      if (result.flag && result.data) {
-        const authUrl = result.data.auth_url || result.data.access_token;
+      const authUrl = result?.auth_url || result?.data?.auth_url || result?.access_token;
+      if (authUrl) {
         // 保存绑定状态到sessionStorage
         sessionStorage.setItem('oauth_bind_mode', 'true');
         sessionStorage.setItem('oauth_bind_provider', provider.oauth_name);
-        
+
         // 跳转到OAuth授权页面
         window.location.href = authUrl;
       } else {
-        setError(result.text || result.message || '获取授权URL失败');
+        setError(result?.text || result?.message || '获取授权URL失败');
       }
     } catch (err) {
       setError('绑定失败，请稍后重试');

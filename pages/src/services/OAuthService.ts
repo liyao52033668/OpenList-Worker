@@ -55,17 +55,18 @@ export class OAuthService {
      * 获取OAuth授权URL（新版 API: POST /api/auth/sso）
      */
     async getAuthUrl(provider: string, redirectUri: string): Promise<OAuthAuthUrlResponse> {
-        const response = await apiService.post(`/api/auth/sso`, {
+        const response: any = await apiService.post(`/api/auth/sso`, {
             provider,
             redirect_uri: redirectUri,
         });
+        // 拦截器已剥出新版 {code,message,data} 的 data，response 即 { auth_url, state }
         return {
-            flag: response.flag ?? (response.code === 200),
-            text: response.message || response.text || '',
-            data: response.data ? {
-                auth_url: response.data.auth_url || response.data.access_token || '',
-                state: response.data.state || provider,
-            } : undefined,
+            flag: true,
+            text: '',
+            data: {
+                auth_url: response.auth_url || response.data?.auth_url || response.access_token || '',
+                state: response.state || response.data?.state || provider,
+            },
         };
     }
 
@@ -91,11 +92,9 @@ export class OAuthService {
      * 刷新OAuth令牌（新版 API: POST /api/auth/login）
      */
     async refreshToken(provider: string, refreshToken: string): Promise<boolean> {
-        const response = await apiService.post(`/api/auth/login`, {
-            provider,
-            refresh_token: refreshToken,
-        });
-        return response.flag ?? (response.code === 200);
+        // 后端 /api/auth/login 仅接受 {username, password}，不支持 OAuth token 刷新，此方法已废弃
+        console.warn('[OAuthService] refreshToken 未实现：后端 /api/auth/login 不接受 OAuth 参数');
+        return false;
     }
 
     /**
@@ -119,11 +118,13 @@ export class OAuthService {
     }
 
     /**
-     * 获取可用的OAuth提供商（新版 API: GET /api/admin/oauth/list）
+     * 获取可用的OAuth提供商（公开接口，登录页/绑定页均可访问）
      */
     async getAvailableProviders(): Promise<{ flag: boolean; text: string; data?: any[] }> {
-        const response = await apiService.get('/api/admin/oauth/list');
-        return response;
+        const response: any = await apiService.get('/api/public/oauth/providers');
+        // 拦截器已剥出 data，为提供商数组
+        const list = Array.isArray(response) ? response : (response?.data || []);
+        return { flag: true, text: '', data: list };
     }
 
     /**

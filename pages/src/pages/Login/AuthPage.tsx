@@ -195,9 +195,10 @@ const AuthPage: React.FC = () => {
     useEffect(() => {
         const fetchOAuthProviders = async (retryCount = 0) => {
             try {
-                const response = await oauthService.getAvailableProviders();
-                if (response.flag && response.data) {
-                    setOauthProviders(response.data.filter((p: any) => p.is_enabled === 1));
+                const response: any = await oauthService.getAvailableProviders();
+                const providers = Array.isArray(response) ? response : (response?.data || []);
+                if (providers.length > 0) {
+                    setOauthProviders(providers.filter((p: any) => p.is_enabled === 1));
                 } else if (retryCount < 2) {
                     setTimeout(() => fetchOAuthProviders(retryCount + 1), 1000 * (retryCount + 1));
                 }

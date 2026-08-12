@@ -16,7 +16,8 @@ const SmbConfig: React.FC = () => {
     try {
       const data: any = await apiService.get('/api/admin/setting/list?group=smb');
       if (Array.isArray(data) && data.length > 0) {
-        const config = JSON.parse(data[0].token_info || '{}');
+        // setting/list 返回 {key, value, type, group, flag}，配置值在 value 字段
+        const config = JSON.parse(data[0].value || '{}');
         form.setFieldsValue(config);
       }
     } catch (error) {

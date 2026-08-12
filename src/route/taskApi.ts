@@ -73,12 +73,75 @@ async function parseBody(c: Context): Promise<any> {
     }
 }
 
-/** 将 TasksManage 的任务对象转换为 GO 后端 TaskInfo 格式 */
+/** 从 query string 或 body 中读取 tid（兼容两种传参方式） */
+async function getTid(c: Context): Promise<string | null> {
+    // 优先从 query string 读取
+    const queryTid = c.req.query('tid');
+    if (queryTid) return queryTid;
+    // 回退到 body
+    try {
+        const body = await parseBody(c);
+        if (body?.tid) return String(body.tid);
+    } catch { /* ignore */ }
+    return null;
+}
+
+/** 将 GO 风格 state 字符串映射为数字 flag（0-4） */
+function stateToFlag(state: string): number {
+    switch (state) {
+        case TaskState.Pending:
+        case TaskState.WaitingRetry:
+        case TaskState.BeforeRetry:
+            return 0;
+        case TaskState.Running:
+        case TaskState.Canceling:
+        case TaskState.Failing:
+            return 1;
+        case TaskState.Succeeded:
+            return 2;
+        case TaskState.Errored:
+        case TaskState.Failed:
+            return 3;
+        case TaskState.Canceled:
+            return 4;
+        default:
+            return 0;
+    }
+}
+
+/** 将数字 flag（0-4）映射回 GO 风格 state 字符串（用于过滤逻辑） */
+function flagToState(flag: number): string {
+    switch (flag) {
+        case 0: return TaskState.Pending;
+        case 1: return TaskState.Running;
+        case 2: return TaskState.Succeeded;
+        case 3: return TaskState.Failed;
+        case 4: return TaskState.Canceled;
+        default: return '';
+    }
+}
+
+/**
+ * 将 TasksManage 的任务对象转换为响应格式。
+ * 同时包含 GO 风格字段和前端期望的 tasks_* / fetch_* 字段。
+ */
 function toTaskInfo(task: any): any {
+    const id = task.tasks_uuid || task.id || '';
+    const tasksFlag: number = typeof task.tasks_flag === 'number'
+        ? task.tasks_flag
+        : stateToFlag(task.tasks_stat || task.state || TaskState.Pending);
+    const tasksInfo: string = task.tasks_info || '';
+    const tasksUser: string = task.tasks_user || task.creator || '';
+
+    // 尝试解析 tasks_info JSON，提取离线下载相关字段
+    let infoObj: Record<string, any> = {};
+    try { infoObj = JSON.parse(tasksInfo); } catch { /* not JSON */ }
+
     return {
-        id: task.tasks_uuid || task.id,
+        // ---- GO 风格字段（保留不变） ----
+        id,
         name: task.tasks_name || task.name || '',
-        creator: task.tasks_user || task.creator || '',
+        creator: tasksUser,
         creator_role: 0,
         state: task.tasks_stat || task.state || TaskState.Pending,
         status: task.tasks_text || task.status || '',
@@ -87,6 +150,18 @@ function toTaskInfo(task: any): any {
         end_time: task.end_time || null,
         total_bytes: task.total_bytes || 0,
         error: task.tasks_erro || task.error || '',
+
+        // ---- 前端 tasks_* 字段（CloudCopy / CloudMove / CloudExtract） ----
+        tasks_uuid: id,
+        tasks_flag: tasksFlag,
+        tasks_info: tasksInfo,
+
+        // ---- 前端 fetch_* 字段（OfflineDownload） ----
+        fetch_uuid: id,
+        fetch_from: infoObj.url || infoObj.fetch_from || '',
+        fetch_dest: infoObj.path || infoObj.dest || infoObj.fetch_dest || '',
+        fetch_user: tasksUser,
+        fetch_flag: tasksFlag,
     };
 }
 
@@ -121,7 +196,10 @@ export function taskRoutes(app: Hono<any>) {
         const tasks = (result.data || [])
             .filter((t: any) => {
                 const taskType = t.tasks_type || t.type || '';
-                const state = t.tasks_stat || t.state || '';
+                // 兼容数字 tasks_flag 和字符串 state 两种格式
+                const state = typeof t.tasks_flag === 'number'
+                    ? flagToState(t.tasks_flag)
+                    : (t.tasks_stat || t.state || '');
                 const creator = t.tasks_user || t.creator || '';
                 return taskType === type &&
                     UNDONE_STATES.has(state) &&
@@ -149,7 +227,10 @@ export function taskRoutes(app: Hono<any>) {
         const tasks = (result.data || [])
             .filter((t: any) => {
                 const taskType = t.tasks_type || t.type || '';
-                const state = t.tasks_stat || t.state || '';
+                // 兼容数字 tasks_flag 和字符串 state 两种格式
+                const state = typeof t.tasks_flag === 'number'
+                    ? flagToState(t.tasks_flag)
+                    : (t.tasks_stat || t.state || '');
                 const creator = t.tasks_user || t.creator || '';
                 return taskType === type &&
                     DONE_STATES.has(state) &&
@@ -168,7 +249,7 @@ export function taskRoutes(app: Hono<any>) {
         const user = c.get('user');
         if (!user) return errorResp(c, '未登录', 401);
 
-        const tid = c.req.query('tid');
+        const tid = await getTid(c);
         if (!tid) return errorResp(c, 'tid 不能为空', 400);
 
         const tasksManage = new TasksManage(c);
@@ -195,7 +276,7 @@ export function taskRoutes(app: Hono<any>) {
         const user = c.get('user');
         if (!user) return errorResp(c, '未登录', 401);
 
-        const tid = c.req.query('tid');
+        const tid = await getTid(c);
         if (!tid) return errorResp(c, 'tid 不能为空', 400);
 
         const tasksManage = new TasksManage(c);
@@ -223,7 +304,7 @@ export function taskRoutes(app: Hono<any>) {
         const user = c.get('user');
         if (!user) return errorResp(c, '未登录', 401);
 
-        const tid = c.req.query('tid');
+        const tid = await getTid(c);
         if (!tid) return errorResp(c, 'tid 不能为空', 400);
 
         const tasksManage = new TasksManage(c);
@@ -250,7 +331,7 @@ export function taskRoutes(app: Hono<any>) {
         const user = c.get('user');
         if (!user) return errorResp(c, '未登录', 401);
 
-        const tid = c.req.query('tid');
+        const tid = await getTid(c);
         if (!tid) return errorResp(c, 'tid 不能为空', 400);
 
         const tasksManage = new TasksManage(c);

@@ -270,9 +270,9 @@ code, pre, .mono {
 }
 
 /* ═══════════ Antd Modal 增强 ═══════════ */
-.ant-modal {
+/* .ant-modal {
   animation: modalSlideIn var(--transition-normal) ease-out !important;
-}
+} */
 
 /* ═══════════ Antd Tag 增强 ═══════════ */
 .ant-tag {

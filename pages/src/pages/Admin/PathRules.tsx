@@ -54,8 +54,10 @@ const PathRules: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-    const data = await api.get('/api/admin/meta/list');
-      setDataSource(Array.isArray(data) ? data : []);
+    const data: any = await api.get('/api/admin/meta/list');
+      // 后端 meta/list 返回 {content, total} 分页结构，兼容扁平数组
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.content) ? data.content : []);
+      setDataSource(list);
     } catch (err) {
       message.error(t('common.failed'));
     } finally {
