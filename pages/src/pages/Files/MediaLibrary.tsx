@@ -16,16 +16,8 @@
  *  GET /api/public/media/scan_paths
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  Card, Input, Select, Pagination, Spin, Tag, Typography,
-  Tabs, Tooltip, Empty, Rate, Image, Badge, Space, Button, Segmented,
-} from 'antd';
-import {
-  VideoCameraOutlined, CustomerServiceOutlined, PictureOutlined,
-  ReadOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined,
-  StarOutlined, TagOutlined, FolderOutlined, PlayCircleOutlined,
-  LoadingOutlined, CheckCircleOutlined, ClockCircleOutlined,
-} from '@ant-design/icons';
+import { Card, Input, Tag, Typography } from 'antd'
+import { VideoCameraOutlined, CustomerServiceOutlined, PictureOutlined, ReadOutlined, StarOutlined, PlayCircleOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../../store';

@@ -1,13 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../store';
-import type {
-  UsersResult,
-  UsersConfig,
-  LoginRequest,
-  CreateUserRequest,
-  UpdateUserRequest
-} from '../types';
+import type { UsersResult, LoginRequest, CreateUserRequest, UpdateUserRequest } from '../types'
 
 // 新版 API 基础路径（与 GO 后端对齐）
 const API_AUTH   = '/api/auth';

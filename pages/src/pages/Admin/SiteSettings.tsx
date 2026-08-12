@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Input, Button, Row, Col, Switch, Divider, Space, message, Tooltip } from 'antd';
-import { SaveOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Card, Typography, Input, Button, Row, Col, Switch, Divider, Space, message } from 'antd';
 import apiService from '../../posts/api';
 
 const SiteSettings: React.FC = () => {
@@ -28,10 +27,10 @@ const SiteSettings: React.FC = () => {
     const loadSettings = async () => {
       try {
         const result = await apiService.get('/api/admin/setting/list');
-        if (result.flag && result.data) {
+        if (Array.isArray(result)) {
           const data: Record<string, any> = {};
-          (result.data as any[]).forEach((item: any) => {
-            data[item.admin_keys] = item.admin_data;
+          result.forEach((item: any) => {
+            data[item.key] = item.value;
           });
           setSettings(prev => ({
             ...prev,
@@ -72,12 +71,8 @@ const SiteSettings: React.FC = () => {
         { admin_keys: 'user_home_dir', admin_data: settings.userHomeDir || '/home/' },
         { admin_keys: 'cors_allowed_origins', admin_data: settings.corsAllowedOrigins },
       ];
-      const result = await apiService.post('/api/admin/setting/save', { items });
-      if (result.flag) {
-        message.success('站点设置保存成功');
-      } else {
-        message.error(result.text || '保存失败');
-      }
+      await apiService.post('/api/admin/setting/save', { items });
+      message.success('站点设置保存成功');
     } catch (err) {
       message.error('保存失败，请检查网络连接');
     }

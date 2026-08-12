@@ -3,7 +3,7 @@
  * 管理云端文件复制任务
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, Input, Modal, Typography, Space, Tag, message, Popconfirm, Empty } from 'antd';
+import { Card, Table, Button, Form, Input, Modal, Typography, Space, Tag, message, Popconfirm } from 'antd'
 import { CopyOutlined, PlusOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 

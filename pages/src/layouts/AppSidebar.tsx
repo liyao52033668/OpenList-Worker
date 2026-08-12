@@ -8,7 +8,7 @@
  * - 管理员(admin)：显示所有菜单
  */
 import React, { useMemo } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Typography, Tooltip, Badge } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Typography, Tooltip } from 'antd'
 import {
   FolderOutlined,
   FolderOpenOutlined,

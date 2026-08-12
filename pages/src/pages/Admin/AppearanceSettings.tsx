@@ -3,8 +3,8 @@
  * 管理站点外观、主题、Logo等
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Select, Switch, Button, message, Typography, Upload, ColorPicker, Divider } from 'antd';
-import { BgColorsOutlined, SaveOutlined, UploadOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Select, Button, message, Typography, Divider } from 'antd'
+import { BgColorsOutlined, SaveOutlined } from '@ant-design/icons'
 import { apiService } from '../../posts/api';
 
 const { Title, Text } = Typography;
@@ -16,10 +16,10 @@ const AppearanceSettings: React.FC = () => {
 
   const fetchSettings = async () => {
     try {
-      const res: any = await apiService.get('/api/admin/setting/list?group=appearance');
-      if (res.flag && res.data) {
-        const settings = JSON.parse(res.data.admin_data || '{}');
-        form.setFieldsValue(settings);
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'appearance');
+      if (setting && setting.value) {
+        form.setFieldsValue(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取外观设置失败:', error);
@@ -31,15 +31,11 @@ const AppearanceSettings: React.FC = () => {
   const handleSave = async (values: any) => {
     setLoading(true);
     try {
-      const res: any = await apiService.post('/api/admin/setting/save', {
+      await apiService.post('/api/admin/setting/save', {
         admin_keys: 'appearance',
         admin_data: JSON.stringify(values),
       });
-      if (res.flag) {
-        message.success('外观设置保存成功');
-      } else {
-        message.error(res.text || '保存失败');
-      }
+      message.success('外观设置保存成功');
     } catch (error: any) {
       message.error(error.message || '保存失败');
     } finally {
@@ -56,7 +52,7 @@ const AppearanceSettings: React.FC = () => {
 
       <Card>
         <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Divider orientation="left">基本设置</Divider>
+          <Divider titlePlacement="left">基本设置</Divider>
 
           <Form.Item label="站点标题" name="site_title" initialValue="OpenList">
             <Input placeholder="站点标题" />
@@ -74,7 +70,7 @@ const AppearanceSettings: React.FC = () => {
             <Input placeholder="Favicon图片URL" />
           </Form.Item>
 
-          <Divider orientation="left">主题设置</Divider>
+          <Divider titlePlacement="left">主题设置</Divider>
 
           <Form.Item label="默认主题" name="default_theme" initialValue="system">
             <Select options={[
@@ -88,7 +84,7 @@ const AppearanceSettings: React.FC = () => {
             <Input placeholder="#3B82F6" />
           </Form.Item>
 
-          <Divider orientation="left">自定义代码</Divider>
+          <Divider titlePlacement="left">自定义代码</Divider>
 
           <Form.Item label="自定义CSS" name="custom_css">
             <TextArea rows={4} placeholder="自定义CSS样式" />

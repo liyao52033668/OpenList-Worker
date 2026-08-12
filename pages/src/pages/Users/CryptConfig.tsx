@@ -251,7 +251,6 @@ const CryptConfig: React.FC = () => {
         title="加密配置"
         columns={columns}
         data={crypts}
-        loading={loading}
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}

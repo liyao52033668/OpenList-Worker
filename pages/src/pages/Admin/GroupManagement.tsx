@@ -15,12 +15,7 @@ import {
   message,
   Form,
 } from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
 import type { Group } from '../../types';
 import apiService from '../../posts/api';
@@ -240,7 +235,6 @@ const GroupManagement: React.FC = () => {
         onDelete={handleDelete}
         onSettings={handlePermissions}
         actions={['edit', 'settings', 'delete']}
-        loading={loading}
       />
 
       {/* 添加/编辑分组对话框 */}

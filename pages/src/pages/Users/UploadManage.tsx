@@ -3,15 +3,8 @@
  * 修复：beforeUpload 现在真正调用 /api/fs/put 上传文件
  */
 import React, { useState } from 'react';
-import {
-  Card, Upload, Button, Table, Progress, Typography,
-  Space, Tag, message, Input, Select,
-} from 'antd';
-import {
-  CloudUploadOutlined, InboxOutlined, DeleteOutlined,
-  FolderOutlined,
-} from '@ant-design/icons';
-import api from '../../posts/api';
+import { Card, Upload, Button, Table, Progress, Typography, Space, Tag, message, Input } from 'antd'
+import { InboxOutlined, DeleteOutlined, FolderOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../../store';
 
 const { Title, Text } = Typography;

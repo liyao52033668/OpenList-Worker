@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '../store';
 import { Modal, Input, Typography, Spin, Tree } from 'antd';
-import {
-  FolderOutlined,
-  HomeOutlined,
-  FolderOpenOutlined,
-} from '@ant-design/icons';
-import axios from 'axios';
+import { FolderOutlined, HomeOutlined } from '@ant-design/icons';
 import { fileApi } from '../posts/api';
 import type { DataNode } from 'antd/es/tree';
 
@@ -68,7 +63,7 @@ export const PathSelectDialog: React.FC<PathSelectDialogProps> = ({
       
       const username = authUser?.users_name;
       
-      const response = await fileApi.getFileList(cleanBackendPath || '/', username, isPersonalFile);
+      const response = await fileApi.getFileList(cleanBackendPath || '/', username);
       
       if (response && response.flag && response.data && response.data.fileList) {
         const folderList = response.data.fileList.filter((item: any) => item.fileType === 0);

@@ -5,16 +5,8 @@
  * 对应后端 /@mates 接口
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card, Table, Button, Space, Modal, Form, Input, InputNumber,
-  Select, Switch, Tag, Tooltip, Typography, Popconfirm, message,
-  Drawer, Descriptions, Badge, Divider, Row, Col, Checkbox,
-} from 'antd';
-import {
-  PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined,
-  FileZipOutlined, EyeInvisibleOutlined, ShareAltOutlined,
-  ReloadOutlined, InfoCircleOutlined, NodeIndexOutlined,
-} from '@ant-design/icons';
+import { Card, Table, Button, Space, Form, Input, InputNumber, Select, Switch, Tag, Tooltip, Typography, Popconfirm, message, Drawer, Badge, Divider, Row, Col, Checkbox } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined, FileZipOutlined, EyeInvisibleOutlined, ShareAltOutlined, ReloadOutlined, NodeIndexOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next';
 import api from '../../posts/api';
 
@@ -74,7 +66,7 @@ const PathRules: React.FC = () => {
   // 加载加密组列表
   const fetchCryptGroups = useCallback(async () => {
     try {
-      const data = await api.get('/api/admin/setting/list?group=crypt');
+      const data = await api.get('/api/admin/crypt/list');
       setCryptGroups(Array.isArray(data) ? data : []);
     } catch { /* 忽略 */ }
   }, []);
@@ -313,7 +305,7 @@ const PathRules: React.FC = () => {
             />
           </Form.Item>
 
-          <Divider orientation="left">属性标记</Divider>
+          <Divider titlePlacement="left">属性标记</Divider>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="attr_encrypted" valuePropName="checked">
@@ -332,7 +324,7 @@ const PathRules: React.FC = () => {
             </Col>
           </Row>
 
-          <Divider orientation="left">所有者权限</Divider>
+          <Divider titlePlacement="left">所有者权限</Divider>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="owner_download" valuePropName="checked">
@@ -351,7 +343,7 @@ const PathRules: React.FC = () => {
             </Col>
           </Row>
 
-          <Divider orientation="left">用户组权限</Divider>
+          <Divider titlePlacement="left">用户组权限</Divider>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="group_download" valuePropName="checked">
@@ -370,7 +362,7 @@ const PathRules: React.FC = () => {
             </Col>
           </Row>
 
-          <Divider orientation="left">其他人权限</Divider>
+          <Divider titlePlacement="left">其他人权限</Divider>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item name="other_download" valuePropName="checked">
@@ -389,7 +381,7 @@ const PathRules: React.FC = () => {
             </Col>
           </Row>
 
-          <Divider orientation="left">安全与缓存</Divider>
+          <Divider titlePlacement="left">安全与缓存</Divider>
           
           <Form.Item name="crypt_name" label={t('mates.cryptGroup')}>
             <Select allowClear placeholder="选择加密组（可选）">

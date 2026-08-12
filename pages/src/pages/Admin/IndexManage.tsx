@@ -29,10 +29,10 @@ const IndexManage: React.FC = () => {
   const fetchIndexes = async () => {
     setLoading(true);
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=index_configs');
-      if (data && data.admin_data) {
-        const configs = JSON.parse(data.admin_data || '[]');
-        setIndexes(configs);
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'index_configs');
+      if (setting && setting.value) {
+        setIndexes(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取索引配置失败:', error);

@@ -2,7 +2,7 @@
  * NFS/DLNA 连接配置页面
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, InputNumber, Switch, Button, message, Typography, Divider, Alert, Select } from 'antd';
+import { Card, Form, Input, Switch, Button, message, Typography, Divider, Alert } from 'antd'
 import { ApiOutlined, SaveOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 
@@ -14,10 +14,10 @@ const NfsConfig: React.FC = () => {
 
   const fetchConfig = async () => {
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=nfs');
-      if (Array.isArray(data) && data.length > 0) {
-        const config = JSON.parse(data[0].token_info || '{}');
-        form.setFieldsValue(config);
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'nfs');
+      if (setting && setting.value) {
+        form.setFieldsValue(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取NFS配置失败:', error);
@@ -58,7 +58,7 @@ const NfsConfig: React.FC = () => {
 
       <Card>
         <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Divider orientation="left">NFS 设置</Divider>
+          <Divider titlePlacement="left">NFS 设置</Divider>
 
           <Form.Item label="启用NFS" name="nfs_enabled" valuePropName="checked" initialValue={false}>
             <Switch />
@@ -72,7 +72,7 @@ const NfsConfig: React.FC = () => {
             <Input placeholder="* 表示允许所有，或指定IP/网段" />
           </Form.Item>
 
-          <Divider orientation="left">DLNA 设置</Divider>
+          <Divider titlePlacement="left">DLNA 设置</Divider>
 
           <Form.Item label="启用DLNA" name="dlna_enabled" valuePropName="checked" initialValue={false}>
             <Switch />

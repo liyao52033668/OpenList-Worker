@@ -3,7 +3,7 @@
  * 管理云端文件解压任务
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, Input, Modal, Typography, Space, Tag, message, Popconfirm, Select } from 'antd';
+import { Card, Table, Button, Form, Input, Modal, Typography, Space, Tag, message, Popconfirm } from 'antd'
 import { FileZipOutlined, PlusOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 

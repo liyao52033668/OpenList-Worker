@@ -1,5 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
-import { ConfigProvider, App as AntdApp, Result, Button, Typography, Spin } from 'antd';
+import { ConfigProvider, App as AntdApp, Result, Typography, Spin } from 'antd'
 import { WarningOutlined } from '@ant-design/icons';
 import zhCN from 'antd/locale/zh_CN';
 import enUS from 'antd/locale/en_US';

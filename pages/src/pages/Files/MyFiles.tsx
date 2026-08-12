@@ -6,24 +6,11 @@
  *  2. 拼接 /home/<用户名>/ 作为用户根目录
  *  3. 嵌入式文件浏览器，与主 FileManager 体验一致，但 basePath 锁定
  */
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card, Table, Button, Breadcrumb, Dropdown, Modal, Input, Upload,
-  Typography, Tooltip, Empty, Skeleton, message, Space,
-} from 'antd';
-import {
-  FolderOutlined, FileOutlined, HomeOutlined, ReloadOutlined,
-  UploadOutlined, FolderAddOutlined, DeleteOutlined, EditOutlined,
-  CopyOutlined, ScissorOutlined, ShareAltOutlined, MoreOutlined,
-  DownloadOutlined, AppstoreOutlined, UnorderedListOutlined,
-} from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
-import type { ColumnsType } from 'antd/es/table';
+import React from 'react'
+import { Card, Modal, Typography, Empty, Space } from 'antd'
+import { HomeOutlined } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store';
-import api from '../../posts/api';
-
 const { Text } = Typography;
 const { confirm } = Modal;
 

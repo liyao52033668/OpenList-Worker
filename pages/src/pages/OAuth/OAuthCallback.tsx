@@ -72,9 +72,10 @@ const OAuthCallback: React.FC = () => {
 
                     if (response.flag && response.token && response.data) {
                         // 更新 Zustand 认证状态
+                        const ud = response.data as any;
                         authLogin(response.token, {
-                            users_name: response.data.users_name || response.data.username || '',
-                            users_mail: response.data.users_mail || response.data.email,
+                            users_name: ud.users_name || ud.username || ud.user_info?.name || '',
+                            users_mail: ud.users_mail || ud.user_info?.email || '',
                         });
                         
                         message.success('OAuth登录成功！');
@@ -96,7 +97,7 @@ const OAuthCallback: React.FC = () => {
         };
 
         handleOAuthCallback();
-    }, [searchParams, navigate, login, showNotification]);
+    }, [searchParams, navigate]);
 
     const handleReturnToLogin = () => {
         navigate('/login');

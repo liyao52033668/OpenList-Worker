@@ -11,15 +11,7 @@ import {
   Divider,
   Space,
 } from 'antd';
-import {
-  DeleteOutlined,
-  PlusOutlined,
-  GoogleOutlined,
-  GithubOutlined,
-  WindowsOutlined,
-  LinkOutlined,
-  LoadingOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, PlusOutlined, GoogleOutlined, GithubOutlined, WindowsOutlined, LinkOutlined } from '@ant-design/icons'
 import { useApp } from './AppContext';
 import apiService from '../posts/api';
 
@@ -92,7 +84,7 @@ const OAuthBinding: React.FC = () => {
       setProviders(providersResult.data || []);
 
       // 获取用户的OAuth绑定（新版 API：GET /api/me）
-      if (state.user?.users_name) {
+      if (state.user?.username) {
         const userResult = await apiService.get('/api/me');
         if (userResult.flag && userResult.data) {
           const userData = userResult.data;
@@ -269,7 +261,7 @@ const OAuthBinding: React.FC = () => {
                     <Space>
                       <span>{provider.oauth_name}</span>
                       {bound && (
-                        <Tag color="success" variant="borderless">已绑定</Tag>
+                        <Tag color="success">已绑定</Tag>
                       )}
                     </Space>
                   }

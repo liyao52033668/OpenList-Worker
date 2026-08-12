@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  Input,
-  Switch,
-  Alert,
-  Typography,
-  Divider,
-  Form,
-  Space,
-} from 'antd';
+import { Modal, Input, Switch, Alert, Typography, Divider, Space } from 'antd'
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import type { UsersConfig, CreateUserRequest, UpdateUserRequest } from '../types';
 
@@ -47,7 +38,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
         users_name: user.users_name,
         users_mail: user.users_mail || '',
         users_pass: '', // 编辑时密码为空，表示不修改
-        is_enabled: user.is_enabled ?? true,
+        is_enabled: user.is_enabled === 'true' || user.is_enabled === '1',
         total_size: user.total_size || 1024 * 1024 * 1024,
         total_used: user.total_used || 0,
         users_mask: user.users_mask || '',

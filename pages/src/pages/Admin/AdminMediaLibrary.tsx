@@ -9,17 +9,8 @@
  *  - 数据统计
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Card, Table, Button, Modal, Input, Select, Form, Space,
-  Tag, Typography, Progress, Statistic, Row, Col, Tooltip,
-  message, Popconfirm, Badge, Alert, Divider,
-} from 'antd';
-import {
-  PlusOutlined, DeleteOutlined, PlayCircleOutlined,
-  SyncOutlined, VideoCameraOutlined, CustomerServiceOutlined,
-  PictureOutlined, ReadOutlined, FolderOutlined,
-  CheckCircleOutlined, LoadingOutlined, InfoCircleOutlined,
-} from '@ant-design/icons';
+import { Card, Table, Button, Modal, Input, Select, Form, Space, Tag, Typography, Statistic, Row, Col, Tooltip, message, Popconfirm, Badge, Alert } from 'antd'
+import { PlusOutlined, DeleteOutlined, PlayCircleOutlined, SyncOutlined, VideoCameraOutlined, CustomerServiceOutlined, PictureOutlined, ReadOutlined, FolderOutlined, LoadingOutlined } from '@ant-design/icons'
 import api from '../../posts/api';
 import type { ColumnsType } from 'antd/es/table';
 

@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Spin,
-  Alert,
-  Modal,
-  Button,
-  Input,
-  Switch,
-  Tag,
-  Typography,
-  message,
-  Space,
-  Form,
-  DatePicker,
-} from 'antd';
+import { Spin, Alert, Modal, Input, Switch, Tag, Typography, message, Form, DatePicker } from 'antd'
 import dayjs from 'dayjs';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
 import type { ShareConfig } from '../../types';
@@ -30,7 +17,7 @@ const MyShares: React.FC = () => {
     share_path: '',
     share_pass: '',
     share_user: '',
-    share_ends: '',
+    share_ends: 0,
     is_enabled: 1
   });
   const [messageApi, contextHolder] = message.useMessage();
@@ -105,7 +92,7 @@ const MyShares: React.FC = () => {
       share_path: '',
       share_pass: '',
       share_user: '',
-      share_ends: '',
+      share_ends: 0,
       is_enabled: 1
     });
     setCreateDialog({ open: true });
@@ -123,8 +110,8 @@ const MyShares: React.FC = () => {
         share_path: formData.share_path,
         share_pass: formData.share_pass || '',
         share_user: formData.share_user,
-        share_date: new Date().toISOString(),
-        share_ends: formData.share_ends || '',
+        share_date: Math.floor(Date.now() / 1000),
+        share_ends: formData.share_ends || 0,
         is_enabled: formData.is_enabled || 1
       };
       const result = await apiService.post('/api/share/create', shareData);
@@ -273,7 +260,7 @@ const MyShares: React.FC = () => {
                 : null}
               onChange={(val) => setEditDialog(prev => ({
                 ...prev,
-                share: prev.share ? { ...prev.share, share_ends: val ? val.toISOString() : '' } : null
+                share: prev.share ? { ...prev.share, share_ends: val ? Math.floor(val.valueOf() / 1000) : 0 } : null
               }))}
             />
           </Form.Item>
@@ -323,7 +310,7 @@ const MyShares: React.FC = () => {
               showTime
               style={{ width: '100%' }}
               value={formData.share_ends ? dayjs(formData.share_ends) : null}
-              onChange={(val) => setFormData(prev => ({ ...prev, share_ends: val ? val.toISOString() : '' }))}
+              onChange={(val) => setFormData(prev => ({ ...prev, share_ends: val ? Math.floor(val.valueOf() / 1000) : 0 }))}
             />
           </Form.Item>
           <Form.Item label="启用分享">

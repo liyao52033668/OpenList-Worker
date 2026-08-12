@@ -132,13 +132,14 @@ class ApiService {
 
                         // 处理后端错误响应格式，提取真实的错误信息
                         if (data && typeof data === 'object') {
+                            const d = data as any;
                             // 新版格式：{code: number, message: string}
-                            if (data.hasOwnProperty('message')) {
-                                throw new ApiError(data.message, data.code || status, error.response);
+                            if (d.hasOwnProperty('message')) {
+                                throw new ApiError(d.message, d.code || status, error.response);
                             }
                             // 旧版格式：{flag: boolean, text: string}
-                            if (data.hasOwnProperty('flag') && data.hasOwnProperty('text')) {
-                                throw new ApiError(data.text, status, error.response);
+                            if (d.hasOwnProperty('flag') && d.hasOwnProperty('text')) {
+                                throw new ApiError(d.text, status, error.response);
                             }
                         }
 
@@ -148,10 +149,11 @@ class ApiService {
                     
                     // 处理其他后端错误响应格式
                     if (data && typeof data === 'object') {
-                        if (data.hasOwnProperty('flag') && data.hasOwnProperty('text')) {
-                            throw new ApiError(data.text || '服务器错误', status, error.response);
-                        } else if (data.hasOwnProperty('message')) {
-                            throw new ApiError(data.message || '服务器错误', data.code || status, error.response);
+                        const d = data as any;
+                        if (d.hasOwnProperty('flag') && d.hasOwnProperty('text')) {
+                            throw new ApiError(d.text || '服务器错误', status, error.response);
+                        } else if (d.hasOwnProperty('message')) {
+                            throw new ApiError(d.message || '服务器错误', d.code || status, error.response);
                         }
                     }
                     

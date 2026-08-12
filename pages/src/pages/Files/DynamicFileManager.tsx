@@ -10,39 +10,20 @@ import {
   Card,
   message,
   Modal,
-  Grid,
+  Row,
+  Col,
   Typography,
   Dropdown,
 } from 'antd';
 import type { MenuProps } from 'antd';
-import {
-  FolderOutlined,
-  FolderOpenOutlined,
-  FileOutlined,
-  HomeOutlined,
-  RightOutlined,
-  ReloadOutlined,
-  UploadOutlined,
-  FolderAddOutlined,
-  FileAddOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MoreOutlined,
-  DownloadOutlined,
-  ShareAltOutlined,
-  DragOutlined,
-  CopyOutlined,
-  CloudDownloadOutlined,
-} from '@ant-design/icons';
+import { FolderOutlined, FileOutlined, HomeOutlined, RightOutlined, ReloadOutlined, UploadOutlined, FolderAddOutlined, FileAddOutlined, EditOutlined, DeleteOutlined, MoreOutlined, DownloadOutlined, ShareAltOutlined, DragOutlined, CopyOutlined, CloudDownloadOutlined } from '@ant-design/icons'
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
 import { PathSelectDialog, NameInputDialog } from '../../components/FileOperationDialogs';
 import FileUploadDialog from '../../components/FileUploadDialog';
 import FilePreview from './FilePreview';
-import type { FileInfo, PathInfo } from '../../types';
-import { downloadFile, FileInfo as DownloadFileInfo } from '../../utils/downloadUtils';
-import apiService, { fileApi } from '../../posts/api';
-
-const { Row, Col } = Grid;
+import type { PathInfo } from '../../types'
+import { downloadFile, type FileInfo as DownloadFileInfo } from '../../utils/downloadUtils';
+import { fileApi } from '../../posts/api'
 
 const DynamicFileManager: React.FC = () => {
   const location = useLocation();
@@ -660,7 +641,7 @@ const DynamicFileManager: React.FC = () => {
 
     const handleSearchReset = () => {
       console.log('DynamicFileManager: 收到searchReset事件，当前路径:', currentPath, 'location.pathname:', location.pathname);
-      console.log('DynamicFileManager: pathInfo.fileList长度:', pathInfo.fileList?.length || 0);
+      console.log('DynamicFileManager: pathInfo.fileList长度:', pathInfo?.fileList?.length || 0);
       
       // 防护措施：确保在搜索重置时不会意外触发任何导航
       const currentLocationPath = location.pathname;
@@ -672,7 +653,7 @@ const DynamicFileManager: React.FC = () => {
         setSearchValue('');
         
         // 确保使用当前目录的完整文件列表
-        if (pathInfo.fileList && pathInfo.fileList.length > 0) {
+        if (pathInfo?.fileList && pathInfo?.fileList.length > 0) {
           // 使用pathInfo.fileList重新生成表格数据
           const currentTableData = prepareTableData();
           setFilteredData(currentTableData);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { downloadManager } from '../utils/downloadManager';
-import { DownloadProgressInfo } from '../components/DownloadProgress';
+import type { DownloadProgressInfo } from '../components/DownloadProgress';
 
 export const useDownloadProgress = () => {
   const [downloads, setDownloads] = useState<DownloadProgressInfo[]>([]);

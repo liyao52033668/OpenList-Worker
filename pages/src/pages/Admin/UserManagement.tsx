@@ -46,9 +46,9 @@ const UserManagement: React.FC = () => {
 
         const term = searchTerm.toLowerCase();
         return userList.filter(user =>
-            user.users_name.toLowerCase().includes(term) ||
-            user.users_mail.toLowerCase().includes(term) ||
-            user.users_mask.toLowerCase().includes(term) ||
+            (user.users_name || '').toLowerCase().includes(term) ||
+            (user.users_mail || '').toLowerCase().includes(term) ||
+            (user.users_mask || '').toLowerCase().includes(term) ||
             (user.is_enabled === 1 ? '启用' : '禁用').includes(term)
         );
     };
@@ -60,7 +60,7 @@ const UserManagement: React.FC = () => {
             if (result.flag && result.data) {
                 const userData = result.data.map((user, index) => ({
                     users_uuid: index + 1,
-                    users_name: user.users_name,
+                    users_name: user.users_name || '',
                     users_mail: user.users_mail,
                     users_pass: '***',
                     users_mask: user.users_mask || 'user',
@@ -162,8 +162,8 @@ const UserManagement: React.FC = () => {
                                     </Tag>
                                 </div>
                                 <Text type="secondary" style={{fontSize: 12}}>
-                                    存储: {(user.total_used / 1024 / 1024 / 1024).toFixed(2)}GB
-                                    / {(user.total_size / 1024 / 1024 / 1024).toFixed(2)}GB
+                                    存储: {((user.total_used || 0) / 1024 / 1024 / 1024).toFixed(2)}GB
+                                    / {((user.total_size || 0) / 1024 / 1024 / 1024).toFixed(2)}GB
                                 </Text>
                             </Space>
                         </div>
@@ -241,10 +241,10 @@ const UserManagement: React.FC = () => {
     // 处理编辑用户
     const handleEdit = (user: User) => {
         setSelectedUser({
-            users_name: user.users_name,
+            users_name: user.users_name || '',
             users_mail: user.users_mail,
             users_mask: user.users_mask,
-            is_enabled: user.is_enabled === 1,
+            is_enabled: user.is_enabled === 1 ? '1' : '0',
             total_size: user.total_size,
             total_used: user.total_used,
             oauth_data: user.oauth_data,
@@ -257,10 +257,10 @@ const UserManagement: React.FC = () => {
     // 处理删除用户
     const handleDelete = (user: User) => {
         setSelectedUser({
-            users_name: user.users_name,
+            users_name: user.users_name || '',
             users_mail: user.users_mail,
             users_mask: user.users_mask,
-            is_enabled: user.is_enabled === 1,
+            is_enabled: user.is_enabled === 1 ? '1' : '0',
             total_size: user.total_size,
             total_used: user.total_used,
             oauth_data: user.oauth_data,

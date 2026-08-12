@@ -2,7 +2,7 @@
  * LDAP连接配置页面
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, InputNumber, Switch, Button, message, Typography, Divider, Alert } from 'antd';
+import { Card, Form, Input, Switch, Button, message, Typography, Divider, Alert } from 'antd'
 import { LinkOutlined, SaveOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 
@@ -15,10 +15,10 @@ const LdapConfig: React.FC = () => {
 
   const fetchConfig = async () => {
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=ldap');
-      if (Array.isArray(data) && data.length > 0) {
-        const config = JSON.parse(data[0].token_info || '{}');
-        form.setFieldsValue(config);
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'ldap');
+      if (setting && setting.value) {
+        form.setFieldsValue(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取LDAP配置失败:', error);
@@ -73,7 +73,7 @@ const LdapConfig: React.FC = () => {
             <Switch />
           </Form.Item>
 
-          <Divider orientation="left">服务器设置</Divider>
+          <Divider titlePlacement="left">服务器设置</Divider>
 
           <Form.Item label="服务器地址" name="server_url" rules={[{ required: true, message: '请输入LDAP服务器地址' }]}>
             <Input placeholder="ldap://ldap.example.com:389" />
@@ -91,7 +91,7 @@ const LdapConfig: React.FC = () => {
             <Input.Password placeholder="LDAP绑定密码" />
           </Form.Item>
 
-          <Divider orientation="left">搜索设置</Divider>
+          <Divider titlePlacement="left">搜索设置</Divider>
 
           <Form.Item label="用户搜索过滤器" name="user_filter" initialValue="(uid=%s)">
             <Input placeholder="(uid=%s)" />

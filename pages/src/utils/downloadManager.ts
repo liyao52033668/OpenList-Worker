@@ -1,4 +1,4 @@
-import { DownloadProgressInfo } from '../components/DownloadProgress';
+import type { DownloadProgressInfo } from '../components/DownloadProgress';
 
 type DownloadProgressCallback = (downloads: DownloadProgressInfo[]) => void;
 

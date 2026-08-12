@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-    Layout,
-    Button,
-    Input,
-    Avatar,
-    Dropdown,
-    Tooltip,
-    Typography,
-    theme,
-    Divider,
-} from 'antd';
+import { Layout, Button, Input, Avatar, Dropdown, Tooltip, Typography, theme } from 'antd'
 import {
     MenuOutlined,
     SearchOutlined,
@@ -74,8 +64,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
     // 下载队列相关状态
-    const { downloads, isVisible: downloadQueueVisible, toggleVisibility } = useDownloadProgress();
-    const downloadCount = downloads.filter(d => d.status === 'downloading' || d.status === 'pending').length;
+    const { downloads } = useDownloadProgress();
 
     // 响应式侧边栏控制
     useEffect(() => {
@@ -248,9 +237,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 open={!state.sidebarCollapsed}
                 onClose={handleSidebarToggle}
                 isMobile={isMobile}
-                downloadQueueVisible={downloadQueueVisible}
-                onToggleDownloadQueue={toggleVisibility}
-                downloadCount={downloadCount}
             />
 
             {/* 主内容区域 */}

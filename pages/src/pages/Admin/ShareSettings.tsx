@@ -3,7 +3,7 @@
  * 管理全局分享策略和配置
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, InputNumber, Switch, Button, message, Typography, Divider, Select } from 'antd';
+import { Card, Form, InputNumber, Switch, Button, message, Typography, Divider, Select } from 'antd'
 import { ShareAltOutlined, SaveOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 
@@ -15,10 +15,12 @@ const ShareSettings: React.FC = () => {
 
   const fetchSettings = async () => {
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=share_settings');
-      if (data && data.admin_data) {
-        const settings = JSON.parse(data.admin_data || '{}');
-        form.setFieldsValue(settings);
+      // setting/list 返回数组 [{key, value, type, group, flag}]
+      // 注意：保存时 admin_group 默认为 'general'，不能带 group 过滤，直接按 key 查找
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'share_settings');
+      if (setting && setting.value) {
+        form.setFieldsValue(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取分享设置失败:', error);
@@ -51,7 +53,7 @@ const ShareSettings: React.FC = () => {
 
       <Card>
         <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Divider orientation="left">基本设置</Divider>
+          <Divider titlePlacement="left">基本设置</Divider>
 
           <Form.Item label="允许分享" name="share_enabled" valuePropName="checked" initialValue={true}>
             <Switch checkedChildren="开启" unCheckedChildren="关闭" />
@@ -69,7 +71,7 @@ const ShareSettings: React.FC = () => {
             <Switch checkedChildren="是" unCheckedChildren="否" />
           </Form.Item>
 
-          <Divider orientation="left">访问限制</Divider>
+          <Divider titlePlacement="left">访问限制</Divider>
 
           <Form.Item label="最大访问次数(0=不限)" name="max_access_count" initialValue={0}>
             <InputNumber min={0} style={{ width: '100%' }} />

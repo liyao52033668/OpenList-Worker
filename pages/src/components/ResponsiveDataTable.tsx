@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react'
 import { Table, Button, Typography, Space, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -21,7 +21,7 @@ interface Column {
   label: string;
   minWidth?: number;
   align?: 'right' | 'left' | 'center';
-  format?: (value: any) => React.ReactNode;
+  format?: (value: any, record?: any) => React.ReactNode;
   priority?: number; // 优先级，数字越小优先级越高，0为最高优先级（不会被隐藏）
   sortable?: boolean; // 是否可排序
 }
@@ -101,7 +101,7 @@ const ResponsiveDataTable: React.FC<ResponsiveDataTableProps> = ({
       ellipsis: col.id !== 'name',
       sorter: col.sortable && onSort ? true : undefined,
       sortOrder: sortBy === col.id ? (sortOrder === 'asc' ? 'ascend' : 'descend') : undefined,
-      render: col.format ? (_: any, record: any) => col.format!(record[col.id]) : undefined,
+      render: col.format ? (_: any, record: any) => col.format!(record[col.id], record) : undefined,
     }));
 
     // 添加操作列

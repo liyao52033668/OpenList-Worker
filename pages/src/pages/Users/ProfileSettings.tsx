@@ -3,7 +3,7 @@
  * 允许用户查看和修改个人信息
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, message, Typography, Avatar, Space, Descriptions } from 'antd';
+import { Card, Form, Input, Button, message, Typography, Avatar, Space } from 'antd'
 import { UserOutlined, MailOutlined, SaveOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../../store';
 import { apiService } from '../../posts/api';

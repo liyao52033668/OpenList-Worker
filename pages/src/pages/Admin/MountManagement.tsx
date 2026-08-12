@@ -1,29 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Modal,
-  Input,
-  InputNumber,
-  Select,
-  Switch,
-  Typography,
-  Alert,
-  Tag,
-  Row,
-  Col,
-  Card,
-  Divider,
-  Form,
-  Space,
-  Spin,
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ReloadOutlined,
-  UndoOutlined,
-} from '@ant-design/icons';
+import { Button, Modal, Input, InputNumber, Select, Switch, Typography, Alert, Tag, Row, Col, Card, Divider, Space, Spin } from 'antd'
+import { PlusOutlined, ReloadOutlined, UndoOutlined } from '@ant-design/icons'
 import DataTable from '../../components/DataTable';
 import type { MountConfig } from '../../types';
 import apiService from '../../posts/api';
@@ -142,8 +119,6 @@ const MountManagement: React.FC = () => {
         driver.fields.forEach((field: DriverField) => {
           if (field.defaultValue !== undefined) {
             initialData[field.key] = field.defaultValue;
-          } else if (field.default !== undefined) {
-            initialData[field.key] = field.default;
           } else {
             initialData[field.key] = '';
           }
@@ -274,7 +249,7 @@ const MountManagement: React.FC = () => {
     }
     
     // 最后设置选中的驱动（避免触发useEffect重置数据）
-    setSelectedDriver(mount.mount_type);
+    setSelectedDriver(mount.mount_type || '');
     setError('');
     setDialogOpen(true);
   };

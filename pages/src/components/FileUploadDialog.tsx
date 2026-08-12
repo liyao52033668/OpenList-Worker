@@ -311,7 +311,7 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
     if (item.type === 'file') {
       await uploadFile(item);
     } else if (item.type === 'folder') {
-      await createFolder(item);
+      await createFolder(item.name);
     }
   };
 

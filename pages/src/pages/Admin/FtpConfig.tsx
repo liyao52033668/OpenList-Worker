@@ -2,7 +2,7 @@
  * FTP/SFTP 连接配置页面
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, InputNumber, Switch, Button, message, Typography, Divider, Alert, Select } from 'antd';
+import { Card, Form, Input, InputNumber, Switch, Button, message, Typography, Alert, Select } from 'antd'
 import { ApiOutlined, SaveOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 
@@ -14,10 +14,10 @@ const FtpConfig: React.FC = () => {
 
   const fetchConfig = async () => {
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=ftp');
-      if (Array.isArray(data) && data.length > 0) {
-        const config = JSON.parse(data[0].token_info || '{}');
-        form.setFieldsValue(config);
+      const list: any = await apiService.get('/api/admin/setting/list');
+      const setting = (Array.isArray(list) ? list : []).find((s: any) => s.key === 'ftp');
+      if (setting && setting.value) {
+        form.setFieldsValue(JSON.parse(setting.value));
       }
     } catch (error) {
       console.error('获取FTP配置失败:', error);

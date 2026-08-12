@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (values: { username: string; password: string }) => {
     setLoading(true);
     try {
-      const res: Record<string, unknown> = await api.post('/api/auth/login', {
+      const res: any = await api.post('/api/auth/login', {
         username: values.username,
         password: values.password,
       });

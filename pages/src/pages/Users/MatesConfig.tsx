@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Button,
-  Modal,
-  Input,
-  InputNumber,
-  Switch,
-  Tag,
-  Typography,
-  Row,
-  Col,
-  Divider,
-  Form,
-  Space,
-  message,
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  FolderOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons';
+import { Modal, Input, InputNumber, Switch, Tag, Typography, Row, Col, Divider, Form, Space, message } from 'antd'
+import { FolderOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
 import type { Mates } from '../../types';
 import apiService from '../../posts/api';
@@ -166,7 +146,7 @@ const MatesConfig: React.FC = () => {
       label: '权限掩码',
       minWidth: 100,
       format: (value: number) => (
-        <Tag icon={<SafetyCertificateOutlined />} variant="borderless">
+        <Tag icon={<SafetyCertificateOutlined />}>
           {value.toString(8)}
         </Tag>
       )
@@ -227,13 +207,10 @@ const MatesConfig: React.FC = () => {
         title="路径配置管理"
         columns={columns}
         data={mates}
-        loading={loading}
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onToggleStatus={handleToggleStatus}
-        actions={['add', 'edit', 'delete', 'toggle']}
-        addButtonText="添加路径配置"
+        actions={['add', 'edit', 'delete']}
       />
 
       {/* 添加/编辑对话框 */}

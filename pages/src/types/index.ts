@@ -30,7 +30,7 @@ export interface User {
   users_mail?: string;
   users_pass?: string;
   users_mask?: string;
-  is_enabled?: string ; // 支持字符串和布尔值
+  is_enabled?: string | number | boolean; // 支持字符串和布尔值
   total_size?: number;
   total_used?: number;
   oauth_data?: string;
@@ -188,7 +188,7 @@ export interface CryptInfo {
   crypt_self?: boolean;
   rands_pass?: boolean;
   write_name?: string;
-  // write_info?: string;
+  write_info?: string;
   oauth_data?: Record<string, any>;
 }
 

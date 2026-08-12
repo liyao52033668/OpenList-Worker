@@ -31,8 +31,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { userApi, systemApi } from '../../posts/api';
 import oauthService from '../../services/OAuthService';
 import { useAuthStore } from '../../store';
-import type { UsersResult, UsersConfig } from '../../types';
-
 const { Title, Text, Link: AntdLink } = Typography;
 
 /* ─── 内联关键帧动画样式（与 LoginPage 共享同名前缀 ap-） ─── */

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useAuthStore } from '../store';
 import { downloadManager } from './downloadManager';
 

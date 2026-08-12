@@ -3,7 +3,7 @@
  * 管理全局加密策略和加密配置
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Form, Input, Select, Switch, Modal, Space, Typography, message, Tag, Popconfirm, InputNumber } from 'antd';
+import { Card, Table, Button, Form, Input, Select, Modal, Space, Typography, message, Tag, Popconfirm } from 'antd'
 import { SecurityScanOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { apiService } from '../../posts/api';
 import type { Crypt } from '../../types';
@@ -20,7 +20,7 @@ const CryptSettings: React.FC = () => {
   const fetchCrypts = async () => {
     setLoading(true);
     try {
-      const data: any = await apiService.get('/api/admin/setting/list?group=crypt');
+      const data: any = await apiService.get('/api/admin/crypt/list');
       setCrypts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('获取加密配置失败:', error);
@@ -33,7 +33,7 @@ const CryptSettings: React.FC = () => {
 
   const handleSave = async (values: any) => {
     try {
-      const url = editingCrypt ? '/api/admin/setting/update' : '/api/admin/setting/create';
+      const url = editingCrypt ? '/api/admin/crypt/update' : '/api/admin/crypt/create';
       await apiService.post(url, values);
       message.success(editingCrypt ? '加密配置更新成功' : '加密配置创建成功');
       setModalVisible(false);
@@ -47,7 +47,7 @@ const CryptSettings: React.FC = () => {
 
   const handleDelete = async (cryptName: string) => {
     try {
-      await apiService.post('/api/admin/setting/delete', { crypt_name: cryptName });
+      await apiService.post('/api/admin/crypt/delete', { crypt_name: cryptName });
       message.success('加密配置已删除');
       fetchCrypts();
     } catch (error: any) {

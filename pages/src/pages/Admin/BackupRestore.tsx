@@ -3,8 +3,8 @@
  * 支持系统数据备份和恢复
  */
 import React, { useState } from 'react';
-import { Card, Button, Upload, message, Typography, Space, Alert, Popconfirm, List, Tag } from 'antd';
-import { SaveOutlined, UploadOutlined, DownloadOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, Button, message, Typography, Alert, Popconfirm } from 'antd'
+import { SaveOutlined, UploadOutlined, DownloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import { apiService } from '../../posts/api';
 
 const { Title, Text } = Typography;
