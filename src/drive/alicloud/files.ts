@@ -98,7 +98,7 @@ export class HostDriver extends BasicDriver {
 			}
 
 			// 获取文件列表
-			const files = await this.getFiles(file.uuid);
+			const files = await this.getFiles(file.uuid ?? '');
 			
 			// 转换为标准格式
 			const fileList: fso.FileInfo[] = files.map(f => this.fileToObj(f));
@@ -690,7 +690,7 @@ export class HostDriver extends BasicDriver {
 		partSize: number,
 		onProgress?: (progress: number) => void
 	): Promise<void> {
-		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData);
+		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData as ReadableStream);
 
 		for (let i = 0; i < partInfoList.length; i++) {
 			const partInfo = partInfoList[i];
@@ -730,7 +730,7 @@ export class HostDriver extends BasicDriver {
 	 * 计算文件的前1024字节SHA1（用于秒传）
 	 */
 	private async calculatePreHash(fileData: Buffer | ReadableStream): Promise<string> {
-		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData);
+		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData as ReadableStream);
 		const preData = buffer.slice(0, Math.min(1024, buffer.length));
 		return crypto.createHash("sha1").update(preData).digest("hex").toUpperCase();
 	}
@@ -739,7 +739,7 @@ export class HostDriver extends BasicDriver {
 	 * 计算文件完整SHA1
 	 */
 	private async calculateSHA1(fileData: Buffer | ReadableStream): Promise<string> {
-		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData);
+		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData as ReadableStream);
 		return crypto.createHash("sha1").update(buffer).digest("hex").toUpperCase();
 	}
 
@@ -751,7 +751,7 @@ export class HostDriver extends BasicDriver {
 			return "";
 		}
 
-		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData);
+		const buffer = fileData instanceof Buffer ? fileData : await this.streamToBuffer(fileData as ReadableStream);
 		const accessToken = this.saving.access_token || "";
 		
 		// 计算proof范围

@@ -208,8 +208,8 @@ const UserManagement: React.FC = () => {
             id: 'is_enabled',
             label: '状态',
             minWidth: 80,
-            format: (value: string) => {
-                const isEnabled = value === 'true';
+            format: (value: any) => {
+                const isEnabled = value === true || value === 1 || value === 'true' || value === '1';
                 return (
                     <Tag color={isEnabled ? 'success' : 'default'}>
                         {isEnabled ? '启用' : '禁用'}

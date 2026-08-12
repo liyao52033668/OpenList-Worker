@@ -122,8 +122,8 @@ export function setupRoutes(app: Hono<any>) {
     // 旧版兼容路由（保留原有格式）
     // ------------------------------------------------------------------
     app.use('/@setup/:action/:method', async (c: Context): Promise<any> => {
-        const action: string = c.req.param('action');
-        const method: string = c.req.param('method');
+        const action: string = c.req.param('action') || '';
+        const method: string = c.req.param('method') || '';
 
         if (action === 'status') {
             try {

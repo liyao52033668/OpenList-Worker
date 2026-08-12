@@ -53,10 +53,10 @@ export class ShareManage {
             }
 
             // 验证日期格式
-            if (shareData.share_date && !this.isValidDate(shareData.share_date)) {
+            if (shareData.share_date && !this.isValidDate(String(shareData.share_date))) {
                 return {flag: false, text: "分享日期格式不正确"};
             }
-            if (shareData.share_ends && !this.isValidDate(shareData.share_ends)) {
+            if (shareData.share_ends && !this.isValidDate(String(shareData.share_ends))) {
                 return {flag: false, text: "分享结束日期格式不正确"};
             }
 
@@ -75,8 +75,8 @@ export class ShareManage {
                 share_path: shareData.share_path,
                 share_pass: shareData.share_pass || "",
                 share_user: shareData.share_user,
-                share_date: shareData.share_date || new Date().toISOString(),
-                share_ends: shareData.share_ends || "",
+                share_date: shareData.share_date ? Number(shareData.share_date) : Math.floor(Date.now() / 1000),
+                share_ends: shareData.share_ends ? Number(shareData.share_ends) : 0,
                 is_enabled: shareData.is_enabled ?? 1 // 默认启用
             };
 
@@ -274,7 +274,7 @@ export class ShareManage {
                 }
             }
 
-            shareData.share_ends = share_ends || "";
+            shareData.share_ends = share_ends ? Number(share_ends) : 0;
 
             return await this.config(shareData);
         } catch (error) {
@@ -380,7 +380,7 @@ export class ShareManage {
             }
 
             // 检查分享是否过期
-            if (shareData.share_ends && shareData.share_ends.length > 0) {
+            if (shareData.share_ends > 0) {
                 const endDate = new Date(shareData.share_ends);
                 const now = new Date();
                 if (now > endDate) {
@@ -428,7 +428,7 @@ export class ShareManage {
             if (result.data.length > 0) {
                 for (const item of result.data) {
                     const shareData = item as ShareConfig;
-                    if (shareData.share_ends && shareData.share_ends.length > 0) {
+                    if (shareData.share_ends > 0) {
                         const endDate = new Date(shareData.share_ends);
                         if (endDate > now && endDate <= futureDate) {
                             result_data.push(shareData);
@@ -468,7 +468,7 @@ export class ShareManage {
             if (result.data.length > 0) {
                 for (const item of result.data) {
                     const shareData = item as ShareConfig;
-                    if (shareData.share_ends && shareData.share_ends.length > 0) {
+                    if (shareData.share_ends > 0) {
                         const endDate = new Date(shareData.share_ends);
                         if (now > endDate) {
                             await this.remove(shareData.share_uuid);

@@ -63,8 +63,12 @@ export class BindsManage {
             };
 
             // 保存到数据库
-            const result: DBResult = await this.d.config({
+            const result: DBResult = await this.d.save({
                 main: "binds",
+                keys: {
+                    oauth_name: bindsData.oauth_name,
+                    binds_user: bindsData.binds_user
+                },
                 data: bindsConfig
             });
 
@@ -151,8 +155,12 @@ export class BindsManage {
             };
 
             // 更新数据库
-            const result: DBResult = await this.d.config({
+            const result: DBResult = await this.d.save({
                 main: "binds",
+                keys: {
+                    oauth_name: existingBind.oauth_name,
+                    binds_user: existingBind.binds_user
+                },
                 data: updatedBind
             });
 
@@ -193,7 +201,7 @@ export class BindsManage {
             }
 
             // 删除绑定
-            const result: DBResult = await this.d.remove({
+            const result: DBResult = await this.d.kill({
                 main: "binds",
                 keys: {
                     oauth_name: oauth_name,

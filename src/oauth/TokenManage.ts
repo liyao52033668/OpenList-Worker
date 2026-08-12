@@ -183,11 +183,11 @@ export class TokenManage {
             });
 
             if (!loginResult.flag) {
-                return { flag: false, text: loginResult.text };
+                return { flag: false, text: loginResult.text || '' };
             }
 
             // 保存token到数据库（关联用户）
-            tokenData.user_id = loginResult.data![0].users_name;
+            tokenData.user_id = loginResult.data![0].users_name || '';
             const saveResult = await this.saveToken(tokenData);
             if (!saveResult.flag) {
                 return saveResult;
@@ -196,9 +196,9 @@ export class TokenManage {
             // 返回用户登录token
             return {
                 flag: true,
-                text: loginResult.text,
-                token: loginResult.token,
-                data: loginResult.data
+                text: loginResult.text || '',
+                token: loginResult.token || '',
+                data: loginResult.data as any
             };
 
         } catch (error) {
@@ -315,7 +315,7 @@ export class TokenManage {
                 keys: keys
             });
 
-            const tokens: OauthTokenData[] = result.data.map(item => item as OauthTokenData);
+            const tokens: OauthTokenData[] = result.data.map((item: any) => item as OauthTokenData);
 
             return {
                 flag: result.flag,
@@ -596,7 +596,7 @@ export class TokenManage {
      */
     async verifyJWT(token: string): Promise<any> {
         try {
-            return await verify(token, this.JWT_SECRET);
+            return await verify(token, this.JWT_SECRET, {} as any);
         } catch (error) {
             console.error("验证JWT错误:", error);
             return null;

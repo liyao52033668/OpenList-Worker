@@ -218,8 +218,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     
                     if (response.ok) {
                         const result = await response.json();
-                        console.log('🔑 token验证结果:', result.flag);
-                        if (result.flag) {
+                        // 兼容新版 {code, message, data} 与旧版 {flag, text, data} 格式
+                        // 后端 /api/me 返回 {code:200, message, data:user}，无 flag 字段
+                        const isValid = result?.code === 200 || result?.flag === true;
+                        console.log('🔑 token验证结果:', isValid);
+                        if (isValid) {
                             // Token有效，恢复用户状态
                             const user = JSON.parse(savedUser);
                             // 如果用户没有头像或头像为空，使用Gravatar生成

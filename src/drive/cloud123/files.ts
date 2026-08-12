@@ -78,11 +78,15 @@ export class HostDriver extends BasicDriver {
 	 */
 	async listFile(file?: fso.FileFind): Promise<fso.PathInfo> {
 		try {
+			// 确保file对象存在
+			if (!file) {
+				file = { path: "/", uuid: "" };
+			}
 			// 获取文件ID
-			if (file?.path) {
+			if (file.path) {
 				file.uuid = await this.findUUID(file.path);
 			}
-			if (!file?.uuid) {
+			if (!file.uuid) {
 				file.uuid = this.config.root_folder_id || con.ROOT_FOLDER_ID;
 			}
 
@@ -314,10 +318,11 @@ export class HostDriver extends BasicDriver {
 	): Promise<DriveResult | null> {
 		try {
 			// 获取父目录ID
-			if (file?.path) {
+			if (!file) return { flag: false, text: "Invalid parameters" };
+			if (file.path) {
 				file.uuid = await this.findUUID(file.path);
 			}
-			if (!file?.uuid) {
+			if (!file.uuid) {
 				file.uuid = this.config.root_folder_id || con.ROOT_FOLDER_ID;
 			}
 			if (!name) {

@@ -85,7 +85,7 @@ try {
 
 			// 获取文件列表
 			const files = await this.getFiles(file.uuid);
-			const fileList: fso.FileInfo[] = files.map((f) => this.convertToFileInfo(f, file.path || "/"));
+			const fileList: fso.FileInfo[] = files.map((f) => this.convertToFileInfo(f, file?.path || "/"));
 
 			return {
 				pageSize: fileList.length,
@@ -382,10 +382,11 @@ try {
 	): Promise<DriveResult | null> {
 		try {
 			// 获取父目录ID
-			if (file?.path) {
+			if (!file) return { flag: false, text: "Invalid parameters" };
+			if (file.path) {
 				file.uuid = await this.findUUID(file.path);
 			}
-			if (!file?.uuid) {
+			if (!file.uuid) {
 				file.uuid = this.config.root_folder_id || "0";
 			}
 			if (!name) {
@@ -607,6 +608,7 @@ async findUUID(path: string): Promise<string | null> {
 			// 实际使用中，文件信息应该在downFile中通过文件列表数据传递
 			const fileInfo: Cloud115File = {
 				fid: fid,
+				n: "",
 				pc: "", // pick_code应该由调用方提供
 			};
 			

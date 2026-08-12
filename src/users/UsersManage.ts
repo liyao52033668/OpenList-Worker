@@ -493,12 +493,13 @@ export class UsersManage {
                 raw_data: oauthUserInfo.raw_data,
                 created_at: Date.now()
             };
-            return await bindsManage.create({
+            const result = await bindsManage.create({
                 oauth_name: oauthUserInfo.oauth_name,
                 binds_user: username,
                 binds_data: JSON.stringify(bindsData),
                 is_enabled: 1
             });
+            return { flag: result.flag, text: result.text };
         } catch (error) {
             console.error("绑定OAuth账户过程中发生错误:", error);
             return { flag: false, text: "绑定OAuth账户失败，请稍后重试" };
@@ -522,7 +523,8 @@ export class UsersManage {
             const bind = bindResult.data[0];
             if (bind.binds_user !== username) return { flag: false, text: "无权解绑此OAuth账户" };
 
-            return await bindsManage.remove(oauthName, username);
+            const result = await bindsManage.remove(oauthName, username);
+            return { flag: result.flag, text: result.text };
         } catch (error) {
             console.error("解绑OAuth账户过程中发生错误:", error);
             return { flag: false, text: "解绑OAuth账户失败，请稍后重试" };

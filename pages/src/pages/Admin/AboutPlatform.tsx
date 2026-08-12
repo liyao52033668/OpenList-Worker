@@ -29,12 +29,13 @@ const AboutPlatform: React.FC = () => {
     const fetchSystemInfo = async () => {
       try {
         setLoading(true);
+        // 拦截器已剥出新版 {code, message, data} 的 data 字段，此处直接得到 SystemInfo 数据
         const response = await systemApi.getSystemInfo();
-        
-        if (response.flag && response.data) {
-          setSystemInfo(response.data);
+
+        if (response && typeof response === 'object' && Object.keys(response).length > 0) {
+          setSystemInfo(response as SystemInfo);
         } else {
-          setError(response.text || '获取系统信息失败');
+          setError('获取系统信息失败');
         }
       } catch (err: any) {
         console.error('获取系统信息失败:', err);

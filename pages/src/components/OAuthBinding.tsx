@@ -83,11 +83,10 @@ const OAuthBinding: React.FC = () => {
 
       setProviders(providersResult.data || []);
 
-      // 获取用户的OAuth绑定（新版 API：GET /api/me）
+      // 获取用户的OAuth绑定（新版 API：GET /api/me，拦截器已剥出 data，即用户对象）
       if (state.user?.username) {
-        const userResult = await apiService.get('/api/me');
-        if (userResult.flag && userResult.data) {
-          const userData = userResult.data;
+        const userData = await apiService.get('/api/me');
+        if (userData && typeof userData === 'object') {
           if (userData.oauth_data) {
             try {
               const oauthBindings = JSON.parse(userData.oauth_data);
@@ -159,19 +158,16 @@ const OAuthBinding: React.FC = () => {
       }
 
       // 解绑OAuth（新版 API：POST /api/me/update）
-      const result = await apiService.post('/api/me/update', {
+      // 新版格式失败时拦截器会抛 ApiError 被外层 catch 捕获，成功直接继续
+      await apiService.post('/api/me/update', {
         oauth_unbind: {
           oauth_name: binding.oauth_name,
           oauth_user_id: binding.oauth_user_id
         }
       });
 
-      if (result.flag) {
-        setSuccess('OAuth账户解绑成功');
-        await loadData(); // 重新加载数据
-      } else {
-        setError(result.text || '解绑失败');
-      }
+      setSuccess('OAuth账户解绑成功');
+      await loadData(); // 重新加载数据
     } catch (err) {
       setError('解绑失败，请稍后重试');
       console.error('OAuth解绑失败:', err);

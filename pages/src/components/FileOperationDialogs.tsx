@@ -64,11 +64,15 @@ export const PathSelectDialog: React.FC<PathSelectDialogProps> = ({
       const username = authUser?.users_name;
       
       const response = await fileApi.getFileList(cleanBackendPath || '/', username);
-      
-      if (response && response.flag && response.data && response.data.fileList) {
-        const folderList = response.data.fileList.filter((item: any) => item.fileType === 0);
+
+      // 新版格式：拦截器已剥出 data，为 {content, total, ...}；content 项字段为 name/is_dir
+      // 兼容旧格式 {flag, text, data:{fileList}}
+      const fileList = Array.isArray(response?.content) ? response.content : response?.fileList;
+
+      if (Array.isArray(fileList)) {
+        const folderList = fileList.filter((item: any) => item.fileType === 0 || item.is_dir === true);
         return folderList.map((item: any) => ({
-          name: item.fileName,
+          name: item.name || item.fileName,
           is_dir: true
         }));
       } else {

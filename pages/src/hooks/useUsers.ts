@@ -33,10 +33,26 @@ export const useUsers = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  // 处理API响应
+  // 处理API响应（兼容新版 {code, message, data} 与旧版 {flag, text, data} 格式）
   const handleResponse = (response: any): UsersResult => {
-    if (response.data) {
-      return response.data;
+    const body = response?.data;
+    if (body && typeof body === 'object') {
+      if (body.hasOwnProperty('code') && body.hasOwnProperty('message')) {
+        // 新版 Go 后端格式：{code, message, data}
+        if (body.code === 200) {
+          const payload = body.data;
+          // 兼容分页结构 {content, total} → 返回 content 数组
+          if (payload && Array.isArray(payload.content)) {
+            return { flag: true, text: body.message || 'success', data: payload.content };
+          }
+          return { flag: true, text: body.message || 'success', data: payload };
+        }
+        return { flag: false, text: body.message || '请求失败', code: body.code };
+      }
+      if (body.hasOwnProperty('flag')) {
+        // 旧版格式
+        return body as UsersResult;
+      }
     }
     return {
       flag: false,
@@ -47,7 +63,8 @@ export const useUsers = () => {
   // 处理API错误
   const handleError = (err: any): UsersResult => {
     console.error('API Error:', err);
-    const errorMessage = err.response?.data?.text || err.message || '网络错误';
+    // 新版错误为 {code, message}，旧版为 {flag, text}
+    const errorMessage = err.response?.data?.message || err.response?.data?.text || err.message || '网络错误';
     setError(errorMessage);
     return {
       flag: false,
@@ -63,11 +80,13 @@ export const useUsers = () => {
     try {
       const response = await axios.post(`${API_AUTH}/login`, loginData);
       const result = handleResponse(response);
-      
-      if (result.flag && result.token) {
-        setAuthToken(result.token);
+      // 新版格式 token 位于 data.token
+      const token = result.token || (result.data as any)?.token;
+
+      if (result.flag && token) {
+        setAuthToken(token);
       }
-      
+
       return result;
     } catch (err) {
       return handleError(err);
@@ -146,7 +165,7 @@ export const useUsers = () => {
     setError(null);
     
     try {
-      const response = await axios.post(`${API_ME}/update`, userData, {
+      const response = await axios.post(`${API_ADMIN}/update`, userData, {
         headers: getAuthHeaders()
       });
       

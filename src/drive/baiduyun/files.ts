@@ -368,7 +368,7 @@ export class HostDriver extends BasicDriver {
                             }
 
                             // 设置响应头
-                            response.status = downloadResponse.status;
+                            response.status(downloadResponse.status as any);
 
                             // 复制重要的响应头
                             const contentType = downloadResponse.headers.get("Content-Type");
@@ -483,7 +483,7 @@ export class HostDriver extends BasicDriver {
                             }
 
                             // 设置响应头
-                            response.status = downloadResponse.status;
+                            response.status(downloadResponse.status as any);
 
                             // 复制重要的响应头
                             const contentType = downloadResponse.headers.get("Content-Type");
@@ -581,7 +581,7 @@ export class HostDriver extends BasicDriver {
                             }
 
                             // 设置响应头
-                            response.status = downloadResponse.status;
+                            response.status(downloadResponse.status as any);
 
                             // 复制重要的响应头
                             const contentType = downloadResponse.headers.get("Content-Type");

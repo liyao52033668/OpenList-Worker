@@ -304,7 +304,7 @@ export class CryptEngine {
         );
 
         return await crypto.subtle.decrypt(
-            { name: 'AES-CTR', counter: iv, length: 64 },
+            { name: 'AES-CTR', counter: iv as unknown as BufferSource, length: 64 },
             key,
             encryptedData
         );
@@ -364,7 +364,7 @@ export class CryptEngine {
             case CryptType.XOR32: {
                 const input = new Uint8Array(data);
                 const result = this.xor32(input, config.crypt_pass);
-                return { data: result.buffer };
+                return { data: result.buffer as ArrayBuffer };
             }
             case CryptType.CHACHA20: {
                 // ChaCha20暂用AES-256替代，后续可扩展
@@ -397,7 +397,7 @@ export class CryptEngine {
             case CryptType.XOR32: {
                 const input = new Uint8Array(data);
                 const result = this.xor32(input, config.crypt_pass);
-                return result.buffer;
+                return result.buffer as ArrayBuffer;
             }
             case CryptType.CHACHA20: {
                 // ChaCha20暂用AES-256替代

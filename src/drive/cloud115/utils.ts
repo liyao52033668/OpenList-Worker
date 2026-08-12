@@ -376,7 +376,7 @@ const accessToken = this.config.access_token || this.saving.access_token || "";
 				this.recordError();
 				
 				// Token失效时尝试自动刷新并重试
-				if ((data.errcode === 401 || data.errcode === 99 || data.errno === 99) && !_retry) {
+				if (((data as any).errcode === 401 || (data as any).errcode === 99 || (data as any).errno === 99) && !_retry) {
 					try {
 						console.log("[115云盘] Token失效，尝试自动刷新...");
 						await this.refreshToken();
@@ -580,7 +580,7 @@ return textResponse;
 				this.recordError();
 				
 				// Token失效时尝试自动刷新
-				if (data.errcode === 401 || data.errcode === 99 || data.errno === 99) {
+				if ((data as any).errcode === 401 || (data as any).errcode === 99 || (data as any).errno === 99) {
 					try {
 						console.log("[115云盘] Token失效(FullUrl)，尝试自动刷新...");
 						await this.refreshToken();
@@ -749,7 +749,7 @@ console.log(`[115云盘调试] 请求头:`, {
 try {
 				const response = await fetch(testUrl, {
 					method,
-					headers: authMethod.headers as Record<string, string>,
+					headers: authMethod.headers as unknown as Record<string, string>,
 				});
 
 				console.log(`[115云盘调试] 响应状态:`, {

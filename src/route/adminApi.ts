@@ -118,15 +118,25 @@ export function adminApiRoutes(app: Hono<any>) {
     function toGoUser(u: any, idx: number): any {
         const roleMap: Record<string, number> = { 'admin': 2, 'guest': 1 };
         const role = roleMap[u.users_mask] ?? 0;
+        const isEnabled = u.is_enabled !== false;
         return {
             id: u.users_id ?? (idx + 1),
             username: u.users_name,
             base_path: u.mount_data || '/',
             role,
-            disabled: u.is_enabled === false,
+            disabled: !isEnabled,
             permission: u.users_perm ?? 0,
             sso_id: u.sso_id || '',
             otp: !!(u.otp_secret),
+            // 补充 TSWorker 字段，兼容前端 UserManagement 页面（按旧字段渲染）
+            users_name: u.users_name,
+            users_mail: u.users_mail || '',
+            users_mask: u.users_mask || 'user',
+            is_enabled: isEnabled,
+            total_size: u.total_size || 0,
+            total_used: u.total_used || 0,
+            oauth_data: u.oauth_data || '',
+            mount_data: u.mount_data || '',
         };
     }
 
@@ -170,12 +180,14 @@ export function adminApiRoutes(app: Hono<any>) {
         const roleToMask: Record<number, string> = { 2: 'admin', 1: 'guest', 0: '' };
         const usersManage = new UsersManage(c);
         const result = await usersManage.create({
-            users_name: body.username,
-            users_pass: body.password,
-            users_mail: body.email || '',
-            users_mask: body.role !== undefined ? (roleToMask[body.role] ?? '') : '',
-            is_enabled: body.disabled ? false : true,
-            mount_data: body.base_path || '',
+            // 兼容 Go 风格字段（username/password/email/role/disabled/base_path）
+            // 与前端 UserManagement 表单的 TSWorker 字段（users_name/users_pass/users_mask/is_enabled）
+            users_name: body.username ?? body.users_name,
+            users_pass: body.password ?? body.users_pass,
+            users_mail: body.email || body.users_mail || '',
+            users_mask: body.role !== undefined ? (roleToMask[body.role] ?? '') : (body.users_mask ?? ''),
+            is_enabled: body.disabled !== undefined ? !body.disabled : (body.is_enabled ?? true),
+            mount_data: body.base_path || body.mount_data || '',
             total_size: body.total_size ?? 1024 * 1024 * 1024,
         });
         if (!result.flag) return errorResp(c, result.text || '创建失败', 500);
@@ -186,7 +198,7 @@ export function adminApiRoutes(app: Hono<any>) {
     // Body: { id, username, password?, base_path?, disabled?, permission? }
     app.post('/api/admin/user/update', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const username = body.username;
+        const username = body.username ?? body.users_name;
         if (!username) return errorResp(c, 'username 不能为空', 400);
 
         const usersManage = new UsersManage(c);
@@ -198,10 +210,13 @@ export function adminApiRoutes(app: Hono<any>) {
         const existing = findResult.data[0] as any;
 
         const updateData: any = { users_name: username };
-        if (body.password) updateData.users_pass = body.password;
-        if (body.base_path !== undefined) updateData.mount_data = body.base_path;
+        // 兼容 Go 风格字段（password/base_path/disabled）与前端 TSWorker 字段（users_pass/users_mask/is_enabled）
+        const password = body.password ?? body.users_pass;
+        if (password) updateData.users_pass = password;
+        if (body.base_path !== undefined || body.mount_data !== undefined) updateData.mount_data = body.base_path ?? body.mount_data;
         if (body.disabled !== undefined) updateData.is_enabled = !body.disabled;
-        // role 不允许修改（与Go后端一致）
+        else if (body.is_enabled !== undefined) updateData.is_enabled = body.is_enabled;
+        if (body.users_mask !== undefined) updateData.users_mask = body.users_mask;
 
         const result = await usersManage.config({ ...existing, ...updateData });
         if (!result.flag) return errorResp(c, result.text || '更新失败', 500);
@@ -332,7 +347,7 @@ export function adminApiRoutes(app: Hono<any>) {
         const result = await mountManage.create({
             mount_path: body.mount_path,
             mount_type: body.driver,
-            is_enabled: body.disabled ? false : true,
+            is_enabled: body.disabled ? 0 : 1,
             drive_conf: typeof body.addition === 'string' ? body.addition : JSON.stringify(body.addition || {}),
             drive_save: '{}',
             drive_logs: '',
@@ -749,8 +764,8 @@ export function adminApiRoutes(app: Hono<any>) {
     app.post('/api/admin/crypt/create', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
         const cryptManage = new CryptManage(c);
-        const result = await cryptManage.create(body);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await cryptManage.create(body as any);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -758,8 +773,8 @@ export function adminApiRoutes(app: Hono<any>) {
     app.post('/api/admin/crypt/update', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
         const cryptManage = new CryptManage(c);
-        const result = await cryptManage.config(body);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await cryptManage.config(body as any);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -770,7 +785,7 @@ export function adminApiRoutes(app: Hono<any>) {
         if (!crypt_name) return errorResp(c, 'crypt_name 不能为空', 400);
         const cryptManage = new CryptManage(c);
         const result = await cryptManage.remove(crypt_name);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -781,7 +796,7 @@ export function adminApiRoutes(app: Hono<any>) {
         if (!crypt_name) return errorResp(c, 'crypt_name 不能为空', 400);
         const cryptManage = new CryptManage(c);
         const result = await cryptManage.toggleStatus(crypt_name, is_enabled);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -802,8 +817,8 @@ export function adminApiRoutes(app: Hono<any>) {
         const { token_user } = body;
         if (!token_user) return errorResp(c, 'token_user 不能为空', 400);
         const tokenManage = new TokenManage(c);
-        const result = await tokenManage.getByUser(token_user);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await tokenManage.getByUser(token_user as string);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c, result.data || []);
     });
 
@@ -811,8 +826,8 @@ export function adminApiRoutes(app: Hono<any>) {
     app.post('/api/admin/token/create', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
         const tokenManage = new TokenManage(c);
-        const result = await tokenManage.create(body);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await tokenManage.create(body as any);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -820,8 +835,8 @@ export function adminApiRoutes(app: Hono<any>) {
     app.post('/api/admin/token/config', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
         const tokenManage = new TokenManage(c);
-        const result = await tokenManage.config(body);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await tokenManage.config(body as any);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -831,8 +846,8 @@ export function adminApiRoutes(app: Hono<any>) {
         const { token_uuid } = body;
         if (!token_uuid) return errorResp(c, 'token_uuid 不能为空', 400);
         const tokenManage = new TokenManage(c);
-        const result = await tokenManage.remove(token_uuid);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        const result = await tokenManage.remove(token_uuid as string);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c);
     });
 
@@ -848,7 +863,7 @@ export function adminApiRoutes(app: Hono<any>) {
         const keyword = c.req.query('keyword') || '';
         const mediaManage = new MediaManage(c);
         const result = await mediaManage.listScanPaths(mediaType);
-        if (!result.flag) return errorResp(c, result.text, 400);
+        if (!result.flag) return errorResp(c, result.text || '操作失败', 400);
         return successResp(c, result.data);
     });
 

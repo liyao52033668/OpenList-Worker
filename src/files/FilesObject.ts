@@ -6,6 +6,9 @@ export * from "./FilesObject";
 export interface FileFind {
     path?: string | null;
     uuid?: string | null;
+    // 驱动实现中常用的扩展字段
+    name?: string | null;
+    size?: number | null;
 }
 
 // 文件信息 ############################
@@ -47,6 +50,7 @@ export interface FileLink {
     direct?: string     // 下载地址
     stream?: any        // 下载FD流
     header?: Record<string, string>
+    headers?: Record<string, string>  // 兼容驱动中使用的复数形式
     result?: string     // 文本结果
 }
 

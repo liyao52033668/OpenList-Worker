@@ -178,7 +178,7 @@ export class HostDriver extends BasicDriver {
                         throw new Error(`Download failed: ${downloadResponse.status} ${downloadResponse.statusText}`);
                     }
 
-                    response.status = downloadResponse.status;
+                    response.status(downloadResponse.status as any);
                     const contentType = downloadResponse.headers.get("Content-Type");
                     const contentLength = downloadResponse.headers.get("Content-Length");
                     const contentDisposition = downloadResponse.headers.get("Content-Disposition");
@@ -267,7 +267,7 @@ export class HostDriver extends BasicDriver {
                         throw new Error(`Download failed: ${downloadResponse.status} ${downloadResponse.statusText}`);
                     }
 
-                    response.status = downloadResponse.status;
+                    response.status(downloadResponse.status as any);
                     const contentType = downloadResponse.headers.get("Content-Type");
                     const contentLength = downloadResponse.headers.get("Content-Length");
                     const contentDisposition = downloadResponse.headers.get("Content-Disposition");
@@ -345,7 +345,7 @@ export class HostDriver extends BasicDriver {
                         throw new Error(`Download failed: ${downloadResponse.status} ${downloadResponse.statusText}`);
                     }
 
-                    response.status = downloadResponse.status;
+                    response.status(downloadResponse.status as any);
                     const contentType = downloadResponse.headers.get("Content-Type");
                     const contentLength = downloadResponse.headers.get("Content-Length");
                     const contentDisposition = downloadResponse.headers.get("Content-Disposition");
