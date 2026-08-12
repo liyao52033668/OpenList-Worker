@@ -9,9 +9,9 @@
     "install:page": "cd pages && npm install",
     "build:page": "cd pages && npm run build",
     "deploy:page": "npm run install:page && npm run build:page",
-    "deploy": "npm run deploy:page && wrangler deploy --minify --autoconfig false",
-    "deploy:worker": "wrangler deploy --minify --autoconfig false",
-    "deploy:ci": "npm run build:page && wrangler deploy --minify --autoconfig false",
+    "deploy": "npm run deploy:page && wrangler deploy --minify",
+    "deploy:worker": "wrangler deploy --minify",
+    "deploy:ci": "npm run build:page && wrangler deploy --minify",
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate"
   },
