@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../store';
-import {
+import type {
   UsersResult,
   UsersConfig,
   LoginRequest,

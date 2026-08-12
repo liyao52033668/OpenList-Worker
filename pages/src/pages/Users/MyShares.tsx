@@ -15,7 +15,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
-import { ShareConfig } from '../../types';
+import type { ShareConfig } from '../../types';
 import apiService from '../../posts/api';
 
 const { Title, Text } = Typography;

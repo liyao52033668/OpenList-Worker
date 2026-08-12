@@ -22,7 +22,7 @@ import {
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
-import { Group } from '../../types';
+import type { Group } from '../../types';
 import apiService from '../../posts/api';
 
 // 权限定义

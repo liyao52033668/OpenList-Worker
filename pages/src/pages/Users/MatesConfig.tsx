@@ -22,7 +22,7 @@ import {
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
-import { Mates } from '../../types';
+import type { Mates } from '../../types';
 import apiService from '../../posts/api';
 
 const { Title, Text } = Typography;

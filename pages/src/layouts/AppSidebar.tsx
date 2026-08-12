@@ -51,6 +51,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
 import { useSidebarStore, useAuthStore, useThemeStore, useLangStore } from '../store';
 import type { MenuProps } from 'antd';
 
@@ -446,7 +447,7 @@ const AppSidebar: React.FC = () => {
                 onClick={() => {
                   const newLang = language === 'en-US' ? 'zh-CN' : 'en-US';
                   setLanguage(newLang);
-                  import('i18next').then(i18n => i18n.default.changeLanguage(newLang));
+                  i18n.changeLanguage(newLang);
                 }}
                 isDark={isDark}
               />

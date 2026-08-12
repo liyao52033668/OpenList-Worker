@@ -7,7 +7,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import DataTable from '../../components/DataTable';
-import { Task } from '../../types';
+import type { Task } from '../../types';
 import apiService from '../../posts/api';
 
 const TaskConfig: React.FC = () => {

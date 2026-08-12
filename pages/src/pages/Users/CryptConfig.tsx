@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
-import { CryptInfo } from '../../types';
+import type { CryptInfo } from '../../types';
 import {
   Modal,
   Input,

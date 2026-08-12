@@ -25,7 +25,7 @@ import {
   UndoOutlined,
 } from '@ant-design/icons';
 import DataTable from '../../components/DataTable';
-import { MountConfig } from '../../types';
+import type { MountConfig } from '../../types';
 import apiService from '../../posts/api';
 
 const { TextArea } = Input;

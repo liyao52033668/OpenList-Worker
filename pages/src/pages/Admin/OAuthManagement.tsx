@@ -13,7 +13,7 @@ import {
   message,
 } from 'antd';
 import ResponsiveDataTable from '../../components/ResponsiveDataTable';
-import { OAuth } from '../../types';
+import type { OAuth } from '../../types';
 import apiService from '../../posts/api';
 
 const OAuthManagement: React.FC = () => {

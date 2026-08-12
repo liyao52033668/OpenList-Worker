@@ -10,7 +10,7 @@ import {
   Space,
 } from 'antd';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import { UsersConfig, CreateUserRequest, UpdateUserRequest } from '../types';
+import type { UsersConfig, CreateUserRequest, UpdateUserRequest } from '../types';
 
 interface UserDialogProps {
   open: boolean;

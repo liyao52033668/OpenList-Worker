@@ -14,7 +14,7 @@ import {
 import {PlusOutlined, EditOutlined, DeleteOutlined} from '@ant-design/icons';
 import DataTable from '../../components/DataTable';
 import UserDialog from '../../components/UserDialog';
-import {User, UsersConfig, CreateUserRequest, UpdateUserRequest} from '../../types';
+import type {User, UsersConfig, CreateUserRequest, UpdateUserRequest} from '../../types';
 import {useUsers} from '../../hooks/useUsers';
 
 const {Title, Text} = Typography;

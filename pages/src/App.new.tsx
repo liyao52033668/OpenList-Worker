@@ -11,6 +11,7 @@ import { router } from './router.new';
 import { useThemeStore, useLangStore } from './store';
 import { getThemeConfig } from './theme/antdTheme';
 import { AppProvider } from './components/AppContext';
+import i18n from 'i18next';
 import './i18n';
 
 // 全局样式
@@ -33,11 +34,9 @@ const AppRoot: React.FC = () => {
 
   // 语言变化时同步i18n
   useEffect(() => {
-    import('i18next').then(i18n => {
-      if (i18n.default.language !== language) {
-        i18n.default.changeLanguage(language);
-      }
-    });
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
   }, [language]);
 
   // 透明模式添加body class

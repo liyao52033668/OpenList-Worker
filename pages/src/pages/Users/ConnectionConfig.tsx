@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import DataTable from '../../components/DataTable';
-import { Token } from '../../types';
+import type { Token } from '../../types';
 import apiService from '../../posts/api';
 import { useAuthStore } from '../../store';
 

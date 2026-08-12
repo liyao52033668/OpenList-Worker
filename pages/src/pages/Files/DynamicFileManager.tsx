@@ -38,7 +38,7 @@ import ResponsiveDataTable from '../../components/ResponsiveDataTable';
 import { PathSelectDialog, NameInputDialog } from '../../components/FileOperationDialogs';
 import FileUploadDialog from '../../components/FileUploadDialog';
 import FilePreview from './FilePreview';
-import { FileInfo, PathInfo } from '../../types';
+import type { FileInfo, PathInfo } from '../../types';
 import { downloadFile, FileInfo as DownloadFileInfo } from '../../utils/downloadUtils';
 import apiService, { fileApi } from '../../posts/api';
 
