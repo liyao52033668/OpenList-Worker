@@ -325,16 +325,17 @@ const FileManager: React.FC = () => {
     }
   };
 
-  // 下载文件
+  // 下载文件：直接走同源 /d 直链，由后端自动选择 302 重定向或流式代理
   const handleDownload = async (record: FileItem) => {
     try {
-      const res = await api.post('/api/fs/get', { path: getFilePath(record), password: '' });
-      // 拦截器已解包 data 层，res 直接是 { path, raw_url, ... }
-      if (res?.raw_url) {
-        window.open(res.raw_url, '_blank');
-      } else {
-        message.info(t('files.downloadLink') + ': ' + JSON.stringify(res));
-      }
+      const filePath = getFilePath(record);
+      const dlUrl = '/d' + (filePath.startsWith('/') ? filePath : '/' + filePath);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = record.fileName || '';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } catch {
       message.error(t('common.failed'));
     }
