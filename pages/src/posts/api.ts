@@ -313,7 +313,6 @@ export const fileApi = {
             headers: {
                 'File-Path': encodeURIComponent(filePath),
                 'Content-Type': file.type || 'application/octet-stream',
-                'Content-Length': String(file.size),
             },
             onUploadProgress: (progressEvent: any) => {
                 if (onProgress && progressEvent.total) {

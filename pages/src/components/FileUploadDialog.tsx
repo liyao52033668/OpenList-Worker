@@ -168,7 +168,6 @@ const FileUploadDialog: React.FC<FileUploadDialogProps> = ({
         method: 'PUT',
         headers: {
           'File-Path': cleanTargetPath,
-          'Content-Length': String(item.file.size),
           'Content-Type': item.file.type || 'application/octet-stream',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },

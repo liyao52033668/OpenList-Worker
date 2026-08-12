@@ -59,7 +59,6 @@ const UploadManage: React.FC = () => {
 
         xhr.setRequestHeader('File-Path', encodeURIComponent(uploadPath));
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        xhr.setRequestHeader('Content-Length', String(file.size));
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
