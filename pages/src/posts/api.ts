@@ -543,8 +543,14 @@ export const taskApi = {
         apiService.post(`/api/task/${type}/clear_succeeded`, {}),
 };
 
-// 系统信息相关API
+// 系统初始化与信息相关API
 export const systemApi = {
+    // 检查系统是否已初始化（公开，无需认证，返回 { initialized: boolean }）
+    getStatus: () =>
+        apiService.get('/@setup/status/none'),
+    // 执行首次初始化，创建管理员账户（公开，无需认证）
+    init: (data: { username?: string; password?: string; email?: string }) =>
+        apiService.post('/@setup/init/none', data),
     // 获取系统信息（需要认证，返回 {flag, text, data}）
     getSystemInfo: () =>
         apiService.get('/@setup/info/none'),

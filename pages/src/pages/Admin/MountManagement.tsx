@@ -323,22 +323,24 @@ const MountManagement: React.FC = () => {
       }
     });
 
-    const mountConfig = {
+    // 提交数据遵循后端 /api/admin/storage/create|update 的 Go 风格字段契约
+    // （driver / addition / cache_expiration / disabled / web_proxy / webdav_policy / order / remark）
+    const payload = {
       mount_path: formData.mount_path,
-      mount_type: selectedDriver,
-      is_enabled: formData.is_enabled ? 1 : 0,
-      cache_time: formData.cache_time || 3600,
-      index_list: formData.index_list || 1,
-      proxy_mode: formData.proxy_mode || 0,
-      proxy_data: formData.proxy_data || '',
-      drive_tips: formData.drive_tips || '',
-      drive_conf: JSON.stringify(driveConf)
+      driver: selectedDriver,
+      addition: JSON.stringify(driveConf),
+      cache_expiration: formData.cache_time || 3600,
+      disabled: !formData.is_enabled,
+      web_proxy: formData.proxy_mode === 1,
+      webdav_policy: formData.proxy_data || '',
+      order: formData.index_list || 1,
+      remark: formData.drive_tips || '',
     };
 
     try {
       const url = editingMount ? '/api/admin/storage/update' : '/api/admin/storage/create';
       // 拦截器：成功时返回 {}，失败时抛出 ApiError
-      await apiService.post(url, mountConfig);
+      await apiService.post(url, payload);
       setDialogOpen(false);
       await loadMounts();
     } catch (err: any) {

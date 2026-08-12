@@ -58,8 +58,13 @@ export class HostClouds extends BasicClouds {
 
 		try {
 			// 设置基础URL
-			this.baseUrl = this.config.address.replace(/\/$/, "");
-			
+			let address = this.config.address.replace(/\/$/, "");
+			// 坚果云 WebDAV 根路径为 /dav，地址未包含该前缀时自动补全
+			if (this.isJianguoyun() && !/\/dav\/?$/.test(address)) {
+				address += "/dav";
+			}
+			this.baseUrl = address;
+
 			// 如果是SharePoint，需要获取Cookie
 			if (this.isSharepoint()) {
 				await this.getSharePointCookie();
@@ -152,6 +157,11 @@ export class HostClouds extends BasicClouds {
 			...headers,
 		};
 
+		// 坚果云对 WebDAV 请求校验 User-Agent，显式声明以提升兼容性
+		if (this.isJianguoyun()) {
+			requestHeaders["User-Agent"] = "OpenList-WebDAV/1.0";
+		}
+
 		const options: RequestInit = {
 			method,
 			headers: requestHeaders,
@@ -192,6 +202,13 @@ export class HostClouds extends BasicClouds {
 	 */
 	isSharepoint(): boolean {
 		return this.config.vendor === con.WebDAVVendor.SHAREPOINT;
+	}
+
+	/**
+	 * 检查是否为坚果云
+	 */
+	isJianguoyun(): boolean {
+		return this.config.vendor === con.WebDAVVendor.JIANGUOYUN;
 	}
 
 	/**

@@ -160,7 +160,14 @@ export class MountManage {
             }
         }
         // 添加挂载 =========================================
-        const driveResult: DriveResult = await driver[0].initSelf();
+        // 初始化驱动时捕获异常，避免失败场景下异常向上传播导致请求挂起或内存问题
+        let driveResult: DriveResult;
+        try {
+            driveResult = await driver[0].initSelf();
+        } catch (error: any) {
+            console.error(`@mount reload 初始化异常 ${config.mount_path}:`, error);
+            driveResult = { flag: false, text: error?.message || '驱动初始化异常' };
+        }
 
         // 无论成功还是失败，都要保存drive_save和drive_logs
         console.log("@reload after init", config.drive_save)

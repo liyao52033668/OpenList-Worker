@@ -28,7 +28,7 @@ import {
     LinkOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { userApi } from '../../posts/api';
+import { userApi, systemApi } from '../../posts/api';
 import oauthService from '../../services/OAuthService';
 import { useAuthStore } from '../../store';
 import type { UsersResult, UsersConfig } from '../../types';
@@ -135,8 +135,49 @@ const AuthPage: React.FC = () => {
     const [oauthProviders, setOauthProviders] = useState<Array<{ oauth_name: string; oauth_type: string; is_enabled: boolean }>>([]);
     const [oauthLoading, setOauthLoading] = useState<Record<string, boolean>>({});
 
+    // 系统初始化状态：null=检测中, true=已初始化, false=未初始化
+    const [systemInitialized, setSystemInitialized] = useState<boolean | null>(null);
+    const [initLoading, setInitLoading] = useState(false);
+    const [initForm] = Form.useForm();
+
     const [loginForm] = Form.useForm();
     const [registerForm] = Form.useForm();
+
+    /* 检测系统是否已初始化（未初始化时引导创建管理员账号） */
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res: any = await systemApi.getStatus();
+                if (!cancelled) setSystemInitialized(res?.initialized ?? true);
+            } catch {
+                // 接口异常时回退到正常登录流程，避免阻塞登录页
+                if (!cancelled) setSystemInitialized(true);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    /* 首次初始化：创建管理员账户 */
+    const handleInitSubmit = async (values: any) => {
+        setInitLoading(true);
+        setError('');
+        try {
+            const res: any = await systemApi.init({
+                username: values.username,
+                password: values.password,
+                email: values.email || '',
+            });
+            msg.success('系统初始化成功，请使用管理员账号登录');
+            setSystemInitialized(true);
+            setTabValue('login');
+            initForm.resetFields();
+        } catch (err: any) {
+            setError(err.name === 'ApiError' ? err.message : err.response?.data?.text || err.message || '初始化失败，请稍后重试');
+        } finally {
+            setInitLoading(false);
+        }
+    };
 
     /* 注入关键帧 */
     useEffect(() => {
@@ -446,6 +487,68 @@ const AuthPage: React.FC = () => {
         </div>
     );
 
+    /* ─── 系统初始化面板 ─── */
+    const initPanel = (
+        <div style={{ paddingTop: 20 }}>
+            <div style={{ marginBottom: 24 }}>
+                <Title level={3} style={{ marginBottom: 6, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '-0.02em' }}>
+                    初始化系统
+                </Title>
+                <Text type="secondary" style={{ fontSize: 14 }}>首次使用，请创建管理员账号</Text>
+            </div>
+
+            <Form form={initForm} onFinish={handleInitSubmit} size="large" layout="vertical">
+                <Form.Item name="username" style={inputItemStyle} rules={[{ required: true, message: '请输入管理员用户名' }, { min: 3, message: '至少3个字符' }]}>
+                    <div className="ap-input-wrap">
+                        <Input
+                            prefix={<UserOutlined style={{ color: '#3B82F6', opacity: 0.8 }} />}
+                            placeholder="管理员用户名"
+                            autoComplete="username"
+                            style={{ borderRadius: 10, height: 46 }}
+                        />
+                    </div>
+                </Form.Item>
+
+                <Form.Item name="password" style={inputItemStyle} rules={[{ required: true, message: '请输入密码' }, { min: 6, message: '至少6个字符' }]}>
+                    <div className="ap-input-wrap">
+                        <Input.Password
+                            prefix={<LockOutlined style={{ color: '#3B82F6', opacity: 0.8 }} />}
+                            placeholder="管理员密码"
+                            autoComplete="new-password"
+                            style={{ borderRadius: 10, height: 46 }}
+                        />
+                    </div>
+                </Form.Item>
+
+                <Form.Item name="email" style={inputItemStyle} rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
+                    <div className="ap-input-wrap">
+                        <Input
+                            prefix={<MailOutlined style={{ color: '#3B82F6', opacity: 0.8 }} />}
+                            placeholder="邮箱（可选）"
+                            autoComplete="email"
+                            style={{ borderRadius: 10, height: 46 }}
+                        />
+                    </div>
+                </Form.Item>
+
+                <Form.Item style={{ marginBottom: 0 }}>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={initLoading}
+                        block
+                        className="ap-login-btn"
+                        style={primaryBtnStyle}
+                        icon={!initLoading && <ArrowRightOutlined />}
+                        iconPosition="end"
+                    >
+                        创建管理员并初始化
+                    </Button>
+                </Form.Item>
+            </Form>
+        </div>
+    );
+
     return (
         <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden', background: '#0D1117' }}>
 
@@ -665,6 +768,9 @@ const AuthPage: React.FC = () => {
                             />
                         )}
 
+                        {systemInitialized === false ? (
+                            initPanel
+                        ) : (
                         <Tabs
                             activeKey={tabValue}
                             onChange={handleTabChange}
@@ -692,6 +798,7 @@ const AuthPage: React.FC = () => {
                                 },
                             ]}
                         />
+                        )}
                     </div>
 
                     {/* 底部版权 */}

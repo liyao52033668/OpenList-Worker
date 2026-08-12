@@ -338,6 +338,7 @@ export function adminApiRoutes(app: Hono<any>) {
             drive_logs: '',
             cache_time: body.cache_expiration ?? 30,
             proxy_mode: body.web_proxy ? 1 : 0,
+            proxy_data: body.webdav_policy || '',
         });
 
         if (!result.flag) return errorResp(c, result.text || '创建失败', 500);
@@ -367,6 +368,7 @@ export function adminApiRoutes(app: Hono<any>) {
         if (body.disabled !== undefined) updateData.is_enabled = !body.disabled;
         if (body.cache_expiration !== undefined) updateData.cache_time = body.cache_expiration;
         if (body.web_proxy !== undefined) updateData.proxy_mode = body.web_proxy ? 1 : 0;
+        if (body.webdav_policy !== undefined) updateData.proxy_data = body.webdav_policy;
         if (body.order !== undefined) updateData.order = body.order;
         if (body.remark !== undefined) updateData.remark = body.remark;
 
@@ -519,9 +521,16 @@ export function adminApiRoutes(app: Hono<any>) {
     // POST /api/admin/setting/save — 批量保存设置
     app.post('/api/admin/setting/save', async (c: Context): Promise<any> => {
         const body = await parseBody(c);
-        const settings: Array<{ key: string; value: any }> = body.settings || body;
-
-        if (!Array.isArray(settings)) return errorResp(c, '请求体应为设置数组', 400);
+        // 兼容多种请求体格式：
+        //  1. 直接数组        [{ key, value }, ...]            —— Go 风格
+        //  2. { settings }    { settings: [{ key, value }] }   —— Go 风格批量
+        //  3. { items }       { items: [{ admin_keys, admin_data }] }
+        //  4. 单条对象        { admin_keys, admin_data }       —— TSWorker 风格
+        let settings: any = Array.isArray(body) ? body : (body.settings || body.items);
+        if (!Array.isArray(settings) && (body.admin_keys || body.key)) {
+            settings = [body];
+        }
+        if (!Array.isArray(settings) || settings.length === 0) return errorResp(c, '请求体应为设置数组', 400);
 
         const adminManage = new AdminManage(c);
         const items = settings.map((s: any) => ({

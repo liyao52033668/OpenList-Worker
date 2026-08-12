@@ -10,6 +10,7 @@
 //====== WebDAV Vendor 类型 ======
 export enum WebDAVVendor {
 	SHAREPOINT = "sharepoint",
+	JIANGUOYUN = "jianguoyun",   // 坚果云：根路径为 /dav，使用应用专用密码 Basic 认证
 	OTHER = "other",
 }
 

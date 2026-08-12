@@ -259,6 +259,7 @@ export const config_list: Record<string, any> = {
         description: "WebDAV协议云存储服务（支持坚果云、NextCloud等）",
         fields: [
             { key: "vendor", label: "服务商类型", type: "select", required: true, options: [
+                { value: "jianguoyun", label: "坚果云" },
                 { value: "other", label: "通用WebDAV" },
                 { value: "sharepoint", label: "SharePoint" }
             ], defaultValue: "other" },
