@@ -456,7 +456,7 @@ const AppSidebar: React.FC = () => {
 
         {/* 用户信息卡片 */}
         {_isLoggedIn ? (
-          <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="topRight" getPopupContainer={() => document.body} overlayStyle={{ zIndex: 20000 }}>
+          <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="topRight" getPopupContainer={() => document.body} styles={{ root: { zIndex: 20000 } }}>
             <div
               className="sidebar-user-card"
               style={{

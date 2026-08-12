@@ -38,10 +38,11 @@
     "pg": "^8.16.3",
     "prisma": "^7.4.2",
     "tough-cookie": "^6.0.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "wrangler": "^4.121.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250214.0",
+    "@cloudflare/workers-types": "^5.20260812.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/mssql": "^9.1.8",
     "@types/node": "^24.10.1",
@@ -52,8 +53,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "wrangler": "^4.4.0"
+    "webpack-cli": "^5.1.4"
   },
   "overrides": {
     "esbuild": "^0.25.5",

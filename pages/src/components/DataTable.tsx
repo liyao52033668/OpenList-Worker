@@ -124,13 +124,21 @@ const DataTable: React.FC<DataTableProps> = ({
     },
   ];
 
+  // antd 6 弃用了 rowKey 回调的 index 参数，这里在组件内部维护 record -> 索引 映射，
+  // 既不改变传给回调的 record 对象，也不依赖各数据源是否带统一 id 字段
+  const rowIndexMap = React.useMemo(() => {
+    const map = new Map<object, number>();
+    data.forEach((record, index) => map.set(record, index));
+    return map;
+  }, [data]);
+
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <Table
         columns={antdColumns}
         dataSource={data}
         loading={loading}
-        rowKey={(_, index) => String(index)}
+        rowKey={(record) => String(rowIndexMap.get(record) ?? data.indexOf(record))}
         sticky
         size="middle"
         pagination={false}

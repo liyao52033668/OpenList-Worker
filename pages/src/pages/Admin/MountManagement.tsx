@@ -570,7 +570,7 @@ const MountManagement: React.FC = () => {
         okText="保存"
         cancelText="取消"
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         <div style={{ maxHeight: '60vh', overflowY: 'auto', padding: '8px 0' }}>
           {/* 第一行：驱动类型 和 挂载路径 */}
