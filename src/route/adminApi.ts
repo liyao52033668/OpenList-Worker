@@ -428,8 +428,8 @@ export function adminApiRoutes(app: Hono<any>) {
             id,
             mount_path: m.mount_path,
             driver: m.mount_type || '',
-            order: m.order ?? 0,
-            remark: m.remark || '',
+            order: m.index_list ?? m.order ?? 0,
+            remark: m.drive_tips ?? (m.remark || ''),
             cache_expiration: m.cache_time ?? 30,
             status: m.is_enabled ? 'work' : 'disabled',
             addition: m.drive_conf || '{}',
@@ -445,6 +445,8 @@ export function adminApiRoutes(app: Hono<any>) {
             proxy_mode: m.proxy_mode ?? 0,
             proxy_data: m.proxy_data || '',
             drive_logs: m.drive_logs || '',
+            index_list: m.index_list ?? m.order ?? 0,
+            drive_tips: m.drive_tips ?? (m.remark || ''),
         };
     }
 
@@ -510,6 +512,9 @@ export function adminApiRoutes(app: Hono<any>) {
             cache_time: body.cache_expiration ?? 30,
             proxy_mode: body.web_proxy ? 1 : 0,
             proxy_data: body.webdav_policy || '',
+            // Go 风格契约字段映射到真实表列：order → index_list、remark → drive_tips
+            index_list: body.order ?? 0,
+            drive_tips: body.remark || '',
         });
 
         if (!result.flag) return errorResp(c, result.text || '创建失败', 500);
@@ -540,9 +545,10 @@ export function adminApiRoutes(app: Hono<any>) {
         if (body.cache_expiration !== undefined) updateData.cache_time = body.cache_expiration;
         if (body.web_proxy !== undefined) updateData.proxy_mode = body.web_proxy ? 1 : 0;
         if (body.webdav_policy !== undefined) updateData.proxy_data = body.webdav_policy;
-        // 注意：mount 表没有 order 列（Go 风格契约中的 order 由列表顺序决定，当前映射到 index_list），
-        // 此处不写入 order，否则 SavesServer 生成的 UPDATE 会因 order 为 SQLite 保留字而报错。
-        if (body.remark !== undefined) updateData.remark = body.remark;
+        // Go 风格契约字段映射到 TSWorker 真实表列（mount 表无 order/remark 列，直接写入会报 SQL 错误）：
+        // order → index_list、remark → drive_tips
+        if (body.order !== undefined) updateData.index_list = body.order;
+        if (body.remark !== undefined) updateData.drive_tips = body.remark;
 
         const result = await mountManage.config({ ...existing, ...updateData });
         if (!result.flag) return errorResp(c, result.text || '更新失败', 500);
