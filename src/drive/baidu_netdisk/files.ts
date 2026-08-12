@@ -200,7 +200,10 @@ export class HostDriver extends BasicDriver {
                 }
             }];
         } else {
-            // 小文件：获取重定向后的真实URL直接返回
+            // 小文件：百度 dlink 必须带官方 UA/Referer 才能访问。302 重定向到浏览器会丢失这些
+            // 请求头，导致百度返回 "File wasn't available on site"。因此与文件一并统一走
+            // Worker 代理流式转发（百度→Worker 带 UA/Referer，Worker→浏览器为本地流）。
+            let finalUrl = url;
             try {
                 const response = await fetch(url, {
                     method: "HEAD",
@@ -208,20 +211,47 @@ export class HostDriver extends BasicDriver {
                     headers: {"User-Agent": con.DEFAULT_UA},
                 });
                 const location = response.headers.get("location");
-                const finalUrl = location || url;
-
-                return [{
-                    status: true,
-                    direct: finalUrl,
-                    headers: {"User-Agent": con.DEFAULT_UA},
-                }];
+                finalUrl = location || url;
             } catch (error: any) {
-                return [{
-                    status: true,
-                    direct: url,
-                    headers: {"User-Agent": con.DEFAULT_UA},
-                }];
+                console.warn("Failed to get redirect URL:", error.message);
             }
+
+            return [{
+                status: true,
+                stream: async (response: Context) => {
+                    const downloadResponse = await fetch(finalUrl, {
+                        method: "GET",
+                        headers: {
+                            "User-Agent": con.DEFAULT_UA,
+                            "Referer": "https://pan.baidu.com/"
+                        }
+                    });
+
+                    if (!downloadResponse.ok) {
+                        throw new Error(`Download failed: ${downloadResponse.status} ${downloadResponse.statusText}`);
+                    }
+
+                    response.status(downloadResponse.status as any);
+                    const contentType = downloadResponse.headers.get("Content-Type");
+                    const contentLength = downloadResponse.headers.get("Content-Length");
+                    const contentDisposition = downloadResponse.headers.get("Content-Disposition");
+
+                    if (contentType) response.header("Content-Type", contentType);
+                    if (contentLength) response.header("Content-Length", contentLength);
+                    if (contentDisposition) {
+                        response.header("Content-Disposition", contentDisposition);
+                    } else {
+                        const fileName = file.path?.split('/').pop() || 'download';
+                        response.header("Content-Disposition", `attachment; filename="${encodeURIComponent(fileName)}"`);
+                    }
+
+                    if (downloadResponse.body) {
+                        return downloadResponse.body;
+                    } else {
+                        throw new Error("Download response body is empty");
+                    }
+                }
+            }];
         }
     }
 
