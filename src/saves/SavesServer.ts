@@ -2,6 +2,11 @@ import {DBResult} from "./SavesObject";
 import {D1Database, D1Result} from "@cloudflare/workers-types"
 import {D1Filter} from "./SavesObject";
 
+/** 将列名用反引号包裹，防止与 SQLite 保留字冲突（如 order、group、key 等） */
+function quoteCol(key: string): string {
+    return `\`${key.replace(/`/g, '``')}\``;
+}
+
 export class SavesServer {
     // 更新数据 ####################################################################
     async updateDB(
@@ -15,7 +20,7 @@ export class SavesServer {
 
         // 构建 SET 部分
         for (const [key, value] of Object.entries(values)) {
-            setConditions.push(`${key} = ?`);
+            setConditions.push(`${quoteCol(key)} = ?`);
             // 检查是否为对象类型，如果是则转换为 JSON 字符串
             const processedValue: string =
                 Object.prototype.toString.call(value) === '[object Object]'
@@ -29,7 +34,7 @@ export class SavesServer {
             // 支持 { age: { op: '>', value: 18 } } 或 { age: 18 }
             const op = clause?.op ?? '=';
             const val = clause?.value ?? clause;
-            whereConditions.push(`${key} ${op} ?`);
+            whereConditions.push(`${quoteCol(key)} ${op} ?`);
             params.push(val);
         }
 
@@ -62,7 +67,7 @@ export class SavesServer {
         const params: any[] = [];
 
         for (const [key, value] of Object.entries(values)) {
-            columns.push(key);
+            columns.push(quoteCol(key));
             placeholders.push('?');
             // console.log(key, 'Inserting value:', value);
             // 检查是否为对象类型，如果是则转换为 JSON 字符串
@@ -100,17 +105,18 @@ export class SavesServer {
         for (const [key, condition] of Object.entries(where)) {
             if (!key || key == "undefined") continue;
             let op = condition.op || '=';
+            const col = quoteCol(key);
             if (op === 'LIKE') {
-                conditions.push(`${key} LIKE ?`);
+                conditions.push(`${col} LIKE ?`);
                 params.push(`%${condition.value}%`);
             } else if (op === 'NOT LIKE') {
-                conditions.push(`${key} NOT LIKE ?`);
+                conditions.push(`${col} NOT LIKE ?`);
                 params.push(`%${condition.value}%`);
             } else if (op === '!=') {
-                conditions.push(`${key} != ?`);
+                conditions.push(`${col} != ?`);
                 params.push(condition.value);
             } else {
-                conditions.push(`${key} = ?`);
+                conditions.push(`${col} = ?`);
                 params.push(condition.value);
             }
         }
@@ -150,7 +156,7 @@ export class SavesServer {
             return {flag: false, text: "No conditions provided", data: []};
         }
         for (const [key, value] of Object.entries(where)) {
-            conditions.push(`${key} = ?`);
+            conditions.push(`${quoteCol(key)} = ?`);
             // console.log("now", key, value);
             if (typeof value === 'object'
                 && !Array.isArray(value)

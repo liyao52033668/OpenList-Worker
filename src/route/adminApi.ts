@@ -540,7 +540,8 @@ export function adminApiRoutes(app: Hono<any>) {
         if (body.cache_expiration !== undefined) updateData.cache_time = body.cache_expiration;
         if (body.web_proxy !== undefined) updateData.proxy_mode = body.web_proxy ? 1 : 0;
         if (body.webdav_policy !== undefined) updateData.proxy_data = body.webdav_policy;
-        if (body.order !== undefined) updateData.order = body.order;
+        // 注意：mount 表没有 order 列（Go 风格契约中的 order 由列表顺序决定，当前映射到 index_list），
+        // 此处不写入 order，否则 SavesServer 生成的 UPDATE 会因 order 为 SQLite 保留字而报错。
         if (body.remark !== undefined) updateData.remark = body.remark;
 
         const result = await mountManage.config({ ...existing, ...updateData });
